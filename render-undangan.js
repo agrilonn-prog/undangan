@@ -1,10 +1,12 @@
 const q = Object.fromEntries(new URLSearchParams(location.search));
-const d = { ...DEFAULT_DATA, ...q };
+const demo = !q.pria; // tanpa data mempelai: tampilkan contoh lengkap template
+const d = { ...DEFAULT_DATA, ...(demo && typeof CONTOH !== 'undefined' && CONTOH[q.t] || {}), ...q };
 const T = TEMPLATES.find(t => t.id === d.t) || TEMPLATES[0];
 document.body.className = 't-' + T.id;
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const http = s => /^https?:\/\//.test(s);
+const med = s => /^(https?:\/\/|assets\/|data:)/.test(s); // foto & musik boleh berkas lokal
 const when = new Date(d.tanggal), res = d.resepsi ? new Date(d.resepsi) : new Date(+when + 72e5);
 // Jam acara diketik sebagai waktu setempat (WIB/WITA/WIT); hitung mundur memakai waktu mutlak
 const ZON = {WIB:'+07:00', WITA:'+08:00', WIT:'+09:00'}, zona = ZON[d.zona] ? d.zona : 'WIB';
@@ -27,7 +29,7 @@ const nama = `${esc(d.pria)} <span>&amp;</span> ${esc(d.wanita)}`;
 const KEY = 'ucapan:' + d.pria + d.wanita + d.tanggal;
 
 const tgl = x => x.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
-const foto = d.galeri ? d.galeri.split(',').map(s => s.trim()).filter(http) : [];
+const foto = d.galeri ? d.galeri.split(',').map(s => s.trim()).filter(med) : [];
 const adaRek = d.bank && d.norek;
 const loop = `${esc(d.pria)} &amp; ${esc(d.wanita)} ✦ ${when.getDate()}.${when.getMonth()+1}.${when.getFullYear()} ✦ `.repeat(6);
 const cerita = (d.cerita || '').split(';').map(x => x.split('|').map(y => y.trim())).filter(a => a[0] && a[1]);
@@ -101,11 +103,11 @@ document.querySelectorAll('.r').forEach(el => io.observe(el));
 const nav = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id))), {rootMargin:'-45% 0px -50% 0px'});
 document.querySelectorAll('main section[id]').forEach(el => nav.observe(el));
 
-if (http(d.foto)) $('#cover').style.setProperty('--foto', `url("${encodeURI(d.foto)}")`);
+if (med(d.foto)) $('#cover').style.setProperty('--foto', `url("${encodeURI(d.foto)}")`);
 
 // Musik latar
 let audio;
-if (http(d.musik)) { audio = new Audio(d.musik); audio.loop = true; $('#musik').classList.add('ada'); }
+if (med(d.musik)) { audio = new Audio(d.musik); audio.loop = true; $('#musik').classList.add('ada'); }
 $('#musik').onclick = () => audio.paused ? audio.play() : audio.pause();
 $('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); audio && audio.play().catch(() => {}); if ($('#cat')) setTimeout(() => ($('#cat').hidden = false), 900); };
 
