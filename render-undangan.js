@@ -6,8 +6,11 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const http = s => /^https?:\/\//.test(s);
 const when = new Date(d.tanggal), res = d.resepsi ? new Date(d.resepsi) : new Date(+when + 72e5);
+// Jam acara diketik sebagai waktu setempat (WIB/WITA/WIT); hitung mundur memakai waktu mutlak
+const ZON = {WIB:'+07:00', WITA:'+08:00', WIT:'+09:00'}, zona = ZON[d.zona] ? d.zona : 'WIB';
+const abs = new Date(d.tanggal.slice(0,16) + ':00' + ZON[zona]), absRes = new Date(+abs + (+res - +when));
 const fmtD = x => x.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-const fmtT = x => x.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}).replace(':','.');
+const fmtT = x => x.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}).replace(':','.') + ' ' + zona;
 
 // Penanggalan sesuai budaya: Hijriah, pasaran Jawa, Imlek
 function kal(x) {
@@ -37,6 +40,9 @@ const kisah = cerita.length ? `<section class="blok" id="cerita"><h3 class="r">K
 const akad = d.acara !== 'resepsi' ? `<article class="glass"><h4>Akad / pemberkatan</h4><div class="jam">${fmtT(when)}</div><small>${fmtD(when)}</small></article>` : '';
 const resepsi = d.acara !== 'akad' ? `<article class="glass"><h4>Resepsi</h4><div class="jam">${fmtT(res)}</div><small>${fmtD(res)}</small></article>` : '';
 const tiket = tamuKhusus ? `<section class="blok" id="tiket"><h3 class="r">Tiket masuk</h3><div class="rek glass r"><div id="qr" class="qr"></div><p><strong>${esc(d.to)}</strong>${d.meja ? ` · Meja ${esc(d.meja)}` : ''}</p><small>Tunjukkan kode ini kepada penerima tamu saat tiba.</small></div></section>` : '';
+const live = http(d.live) ? `<section class="blok" id="live"><h3 class="r">Siaran langsung</h3><p class="r">Tidak bisa hadir? Saksikan acara dari mana saja.</p><a class="btn r" href="${esc(d.live)}" target="_blank" rel="noopener">Tonton siaran langsung</a></section>` : '';
+const game = (T.id === 'pixel' || d.game) ? `<section class="blok" id="main"><h3 class="r">Mini game</h3><p class="r">Tangkap sebanyak mungkin hati dalam 20 detik. Geser keranjang dengan jari.</p><canvas id="gm" width="320" height="400"></canvas><p id="skor">Siap main?</p><button class="btn" id="gmulai">Main game</button></section>` : '';
+const catatan = d.catatan ? `<div class="pb" id="cat" hidden><div class="glass tamu"><p>${esc(d.catatan)}</p><button class="btn" id="cat-ok">Mengerti</button></div></div>` : '';
 const booth = `<section class="blok" id="foto"><h3 class="r">Photobooth</h3><p class="r">Berfoto langsung dari undangan, lalu simpan hasilnya.</p><button class="btn r" id="pb-buka">Buka kamera</button></section>
 <div class="pb" id="pb" hidden><video id="pb-v" autoplay playsinline muted></video><p id="pb-err"></p><div><button class="btn" id="pb-ambil">Ambil &amp; simpan foto</button><button class="btn kecil" id="pb-tutup">Tutup</button></div></div>`;
 
@@ -50,7 +56,7 @@ $('#app').innerHTML = `
     <button class="btn" id="buka">Buka undangan</button>
   </div>
 </section>
-<button id="musik" aria-label="Putar atau jeda musik">♫</button>
+<button id="musik" aria-label="Putar atau jeda musik">♫</button><button id="bhs" aria-label="Ganti bahasa">EN</button>
 <nav class="nav glass" aria-label="Navigasi undangan">${menu.map(([i,e,l]) => `<a href="#${i}"><i>${e}</i>${l}</a>`).join('')}</nav>
 <main>
   <section class="blok" id="home">
@@ -59,7 +65,7 @@ $('#app').innerHTML = `
     <p class="kal r">${kal(when)}</p>
     <div class="count r" id="count"></div>
     <p id="status" class="kal"></p>
-    <button class="btn kecil" id="ics">Tambah ke kalender</button><button class="btn kecil" id="bagi">Bagikan</button>
+    <button class="btn kecil" id="ics">Tambah ke kalender</button><button class="btn kecil" id="bagi">Bagikan</button><button class="btn kecil" id="gbr">Simpan gambar story</button>
   </section>
   <div class="marquee" aria-hidden="true"><span>${loop}</span></div>
   <section class="blok"><blockquote class="r">${T.kutipan}${T.sumber ? `<cite>${T.sumber}</cite>` : ''}</blockquote></section>
@@ -73,7 +79,7 @@ $('#app').innerHTML = `
   </section>
   ${foto.length ? `<section class="blok" id="galeri"><h3 class="r">Galeri</h3><div class="gal r">${foto.map(f => `<img src="${esc(f)}" alt="Foto prewedding" loading="lazy">`).join('')}</div></section>` : ''}
   ${adaRek ? `<section class="blok" id="hadiah"><h3 class="r">Amplop digital</h3><div class="rek glass r"><p>${esc(d.bank)} a.n. ${esc(d.an)}</p><b>${esc(d.norek)}</b><button class="btn kecil" id="salin">Salin nomor rekening</button></div></section>` : ''}
-  ${tiket}${booth}
+  ${live}${game}${tiket}${booth}${catatan}
   <section class="blok" id="ucapan"><h3 class="r">Ucapan &amp; kehadiran</h3>
     <form class="rsvp glass r" id="rsvp">
       <input name="nama" placeholder="Nama Anda" value="${d.to === DEFAULT_DATA.to ? '' : esc(d.to)}" required>
@@ -101,21 +107,21 @@ if (http(d.foto)) $('#cover').style.setProperty('--foto', `url("${encodeURI(d.fo
 let audio;
 if (http(d.musik)) { audio = new Audio(d.musik); audio.loop = true; $('#musik').classList.add('ada'); }
 $('#musik').onclick = () => audio.paused ? audio.play() : audio.pause();
-$('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); audio && audio.play().catch(() => {}); };
+$('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); audio && audio.play().catch(() => {}); if ($('#cat')) setTimeout(() => ($('#cat').hidden = false), 900); };
 
 // Hitung mundur + status acara
 function tick() {
-  let s = Math.max(0, Math.floor((when - Date.now()) / 1000));
+  let s = Math.max(0, Math.floor((abs - Date.now()) / 1000));
   $('#count').innerHTML = [['hari',86400],['jam',3600],['menit',60],['detik',1]].map(([n,v]) => { const x = Math.floor(s / v); s %= v; return `<div class="glass"><b>${x}</b>${n}</div>`; }).join('');
   const now = Date.now();
-  $('#status').textContent = now > +res + 72e5 ? 'Acara telah selesai. Terima kasih atas doa Anda.' : now >= +when ? 'Acara sedang berlangsung.' : '';
+  $('#status').textContent = now > +absRes + 72e5 ? 'Acara telah selesai. Terima kasih atas doa Anda.' : now >= +abs ? 'Acara sedang berlangsung.' : '';
 }
 tick(); setInterval(tick, 1000);
 
 // Kalender (.ics)
 $('#ics').onclick = () => {
   const z = x => x.toISOString().replace(/[-:]|\.\d{3}/g, ''), e = s => s.replace(/[,;]/g, '\\$&');
-  const t = ['BEGIN:VCALENDAR','VERSION:2.0','BEGIN:VEVENT','DTSTART:'+z(when),'DTEND:'+z(new Date(+res+72e5)),'SUMMARY:'+e(`Pernikahan ${d.pria} & ${d.wanita}`),'LOCATION:'+e(`${d.tempat}, ${d.alamat}`),'END:VEVENT','END:VCALENDAR'].join('\r\n');
+  const t = ['BEGIN:VCALENDAR','VERSION:2.0','BEGIN:VEVENT','DTSTART:'+z(abs),'DTEND:'+z(new Date(+absRes+72e5)),'SUMMARY:'+e(`Pernikahan ${d.pria} & ${d.wanita}`),'LOCATION:'+e(`${d.tempat}, ${d.alamat}`),'END:VEVENT','END:VCALENDAR'].join('\r\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], {type:'text/calendar'})); a.download = 'pernikahan.ics'; a.click();
 };
 $('#bagi').onclick = () => navigator.share ? navigator.share({title:`Undangan ${d.pria} & ${d.wanita}`, url:location.href}) : navigator.clipboard.writeText(location.href).then(() => ($('#bagi').textContent = 'Tautan tersalin'));
@@ -163,3 +169,63 @@ $('#pb-ambil').onclick = () => {
   x.font = '600 28px sans-serif'; x.fillText(fmtD(when), w / 2, h - 55);
   Object.assign(document.createElement('a'), {href:c.toDataURL('image/png'), download:'photobooth.png'}).click();
 };
+
+// Catatan khusus
+if ($('#cat')) $('#cat-ok').onclick = () => ($('#cat').hidden = true);
+
+// Dua bahasa (label antarmuka)
+const EN = {'Buka undangan':'Open invitation','Kepada Yth.':'Dear','Mempelai':'The Couple','Mempelai pria':'Groom','Mempelai wanita':'Bride','Kisah kami':'Our Story','Acara':'Events','Akad / pemberkatan':'Ceremony','Resepsi':'Reception','Lokasi':'Location','Buka peta':'Open map','Galeri':'Gallery','Amplop digital':'Digital Gift','Salin nomor rekening':'Copy account number','Tiket masuk':'Entry Ticket','Buka kamera':'Open camera','Ucapan & kehadiran':'Wishes & RSVP','Hadir':'Attending','Tidak hadir':'Not attending','Masih ragu':'Not sure','Kirim ucapan':'Send wishes','Kirim lewat WhatsApp':'Send via WhatsApp','hari':'days','jam':'hours','menit':'minutes','detik':'seconds','Tambah ke kalender':'Add to calendar','Bagikan':'Share','Simpan gambar story':'Save story image','Beranda':'Home','Kisah':'Story','Hadiah':'Gift','Tiket':'Ticket','Foto':'Photo','Ucapan':'Wishes','Siaran langsung':'Live stream','Tonton siaran langsung':'Watch live','Mini game':'Mini game','Main game':'Play','Mengerti':'Got it','Tutup':'Close','Ambil & simpan foto':'Capture & save','Berfoto langsung dari undangan, lalu simpan hasilnya.':'Take a photo right here and save it.','Merupakan kehormatan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.':'It would be an honor to have you celebrate with us.','Tunjukkan kode ini kepada penerima tamu saat tiba.':'Show this code to the host when you arrive.'};
+var en = d.bahasa === 'en'; const orig = new WeakMap();
+function tr(root) {
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+  while ((n = w.nextNode())) { const t = n.nodeValue.trim(); if (!t) continue; if (!orig.has(n)) orig.set(n, n.nodeValue); const o = orig.get(n).trim(); n.nodeValue = en && EN[o] ? orig.get(n).replace(o, EN[o]) : orig.get(n); }
+}
+$('#bhs').textContent = en ? 'ID' : 'EN'; if (en) tr($('#app'));
+$('#bhs').onclick = () => { en = !en; $('#bhs').textContent = en ? 'ID' : 'EN'; tr($('#app')); };
+setInterval(() => en && tr($('#count')), 1000);
+
+// Gambar story 1080x1920
+$('#gbr').onclick = () => {
+  const w = 1080, h = 1920, c = Object.assign(document.createElement('canvas'), {width:w, height:h}), x = c.getContext('2d'), cs = getComputedStyle(document.body);
+  const ac = cs.getPropertyValue('--ac').trim() || '#c8a24a', bg = cs.getPropertyValue('--bg').trim() || '#fff', fg = cs.getPropertyValue('--fg').trim() || '#222', hf = cs.getPropertyValue('--hf') || 'serif';
+  x.fillStyle = bg; x.fillRect(0, 0, w, h); const g = x.createLinearGradient(0, 0, w, h); g.addColorStop(0, bg); g.addColorStop(1, ac); x.globalAlpha = .3; x.fillStyle = g; x.fillRect(0, 0, w, h); x.globalAlpha = 1;
+  x.strokeStyle = ac; x.lineWidth = 6; x.strokeRect(50, 50, w - 100, h - 100); x.textAlign = 'center';
+  const t = (s, y, px, col, wt = 700, fam = hf) => { px = +px; do { x.font = `${wt} ${px}px ${fam}`; px -= 6; } while (x.measureText(s).width > w - 200 && px > 30); x.fillStyle = col; x.fillText(s, w / 2, y); };
+  t('KAMI MENIKAH', 420, 40, fg, 500, 'sans-serif'); t(d.pria, 720, 150, fg); t('&', 850, 90, ac, 500); t(d.wanita, 1010, 150, fg);
+  t(fmtD(when), 1230, 52, ac, 600, 'sans-serif'); t(fmtT(when), 1300, 44, fg, 500, 'sans-serif'); t(d.tempat, 1400, 44, fg, 500, 'sans-serif');
+  if (tamuKhusus) { t('Kepada Yth.', 1600, 40, fg, 500, 'sans-serif'); t(d.to, 1690, 64, fg, 700, 'sans-serif'); }
+  Object.assign(document.createElement('a'), {href:c.toDataURL('image/png'), download:'undangan-story.png'}).click();
+};
+
+const hemat = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Salju (tema Snowfall)
+if (T.id === 'salju' && !hemat) {
+  const c = Object.assign(document.createElement('canvas'), {id:'salju'}); document.body.append(c); const x = c.getContext('2d'); let W, H;
+  const rs = () => { W = c.width = innerWidth; H = c.height = innerHeight; }; rs(); addEventListener('resize', rs);
+  const p = Array.from({length:70}, () => ({x:Math.random() * W, y:Math.random() * H, r:Math.random() * 3 + 1, v:Math.random() + .5}));
+  (function f() { x.clearRect(0, 0, W, H); x.fillStyle = '#9bb9e3'; p.forEach(o => { o.y += o.v; o.x += Math.sin(o.y / 40) * .4; if (o.y > H) { o.y = -5; o.x = Math.random() * W; } x.beginPath(); x.arc(o.x, o.y, o.r, 0, 7); x.fill(); }); requestAnimationFrame(f); })();
+}
+// Gulir otomatis (tema Sinematik)
+if (T.id === 'sinematik') {
+  const b = Object.assign(document.createElement('button'), {id:'auto', className:'btn kecil', textContent:'▶ Gulir otomatis'}); document.body.append(b); let a = 0;
+  const stop = () => { a = 0; b.textContent = '▶ Gulir otomatis'; };
+  b.onclick = () => { a = !a; b.textContent = a ? '⏸ Jeda' : '▶ Gulir otomatis'; };
+  addEventListener('wheel', stop); addEventListener('touchstart', stop);
+  (function s() { if (a) scrollBy(0, 1); requestAnimationFrame(s); })();
+}
+// Mini game tangkap hati
+if ($('#gm')) {
+  const c = $('#gm'), x = c.getContext('2d'); let run = 0, sk = 0, px = 160, hs = [], t0 = 0;
+  const gerak = e => { const r = c.getBoundingClientRect(), cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left; px = Math.max(30, Math.min(290, cx * 320 / r.width)); };
+  c.addEventListener('pointermove', gerak); c.addEventListener('touchmove', e => { e.preventDefault(); gerak(e); }, {passive:false});
+  const loop = t => {
+    if (!run) return; if (!t0) t0 = t; const sisa = 20 - (t - t0) / 1000;
+    if (sisa <= 0) { run = 0; $('#skor').textContent = `Waktu habis! Skor ${sk} ❤`; $('#gmulai').disabled = false; return; }
+    if (Math.random() < .045) hs.push({x:Math.random() * 300 + 10, y:-10, v:2 + Math.random() * 2});
+    x.clearRect(0, 0, 320, 400); x.font = '24px serif'; hs.forEach(o => { o.y += o.v; x.fillText('❤', o.x, o.y); });
+    hs = hs.filter(o => { if (o.y > 355 && o.y < 390 && Math.abs(o.x - px) < 38) { sk++; return false; } return o.y < 410; });
+    x.fillStyle = getComputedStyle(document.body).getPropertyValue('--ac'); x.fillRect(px - 30, 372, 60, 12);
+    $('#skor').textContent = `Skor ${sk} · ${Math.ceil(sisa)} dtk`; requestAnimationFrame(loop);
+  };
+  $('#gmulai').onclick = () => { sk = 0; hs = []; t0 = 0; run = 1; $('#gmulai').disabled = true; requestAnimationFrame(loop); };
+}

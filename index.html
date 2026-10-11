@@ -11,7 +11,7 @@
 <body>
 <header class="hero">
   <h1>Undangan pernikahan digital, siap dibagikan lewat tautan</h1>
-  <p>Empat belas template: Islami, Kristiani, Hindu, Buddha, Tionghoa, dan adat daerah. Isi data, lalu kirim tautan ke tiap tamu lewat WhatsApp.</p>
+  <p>Delapan belas template: Islami, Kristiani, Hindu, Buddha, Tionghoa, dan adat daerah. Isi data, lalu kirim tautan ke tiap tamu lewat WhatsApp.</p>
   <a class="btn" href="#editor">Isi data undangan</a> <a class="btn ghost" href="dashboard.html">Dashboard tamu</a>
 </header>
 
@@ -30,6 +30,12 @@
     <div><h3>Kisah cinta</h3><p>Linimasa perjalanan kalian, lengkap dengan profil dan orang tua mempelai.</p></div>
     <div><h3>Warna &amp; huruf</h3><p>Ganti aksen dan huruf judul; teks tombol menyesuaikan agar tetap terbaca.</p></div>
     <div><h3>Planner</h3><p>Anggaran dan daftar tugas persiapan di dashboard, tanpa akun.</p></div>
+    <div><h3>Dua bahasa</h3><p>Tamu bisa mengganti antarmuka undangan antara Indonesia dan Inggris.</p></div>
+    <div><h3>Zona waktu</h3><p>Jam acara tertulis WIB, WITA, atau WIT, dan hitung mundur tetap akurat di kota mana pun.</p></div>
+    <div><h3>Gambar story</h3><p>Satu klik menghasilkan gambar 1080×1920 untuk Instagram atau WhatsApp.</p></div>
+    <div><h3>Mini game</h3><p>Tema Pixel Game punya permainan tangkap hati selama 20 detik.</p></div>
+    <div><h3>Siaran langsung</h3><p>Tempel tautan YouTube atau Zoom untuk keluarga yang jauh.</p></div>
+    <div><h3>Laporan hari H</h3><p>Doorprize, hadiah, souvenir, dan grafik jam kedatangan di dashboard.</p></div>
   </div></section>
   <section id="editor" class="editor" aria-labelledby="h-editor">
     <form id="form">
@@ -52,6 +58,10 @@
       <label>Kisah cinta (tahun|judul|cerita; pisahkan dengan titik koma) <input name="cerita" placeholder="2019|Bertemu|Kami bertemu di kampus;2025|Lamaran|Hari yang tak terlupakan"></label>
       <label>Warna aksen (hex, opsional) <input name="warna" placeholder="#c8a24a"></label>
       <label>Huruf judul <select name="huruf"><option value="">Bawaan tema</option><option value="elegan">Elegan</option><option value="klasik">Klasik</option><option value="modern">Modern</option><option value="tegas">Tegas</option><option value="arab">Amiri</option></select></label>
+      <label>Zona waktu acara <select name="zona"><option>WIB</option><option>WITA</option><option>WIT</option></select></label>
+      <label>Bahasa awal <select name="bahasa"><option value="">Indonesia</option><option value="en">English</option></select></label>
+      <label>Catatan khusus untuk tamu (muncul saat undangan dibuka) <input name="catatan" placeholder="Mohon hadir 15 menit lebih awal"></label>
+      <label>Tautan siaran langsung (opsional) <input name="live" type="url" placeholder="https://youtube.com/..."></label>
       <label>Galeri foto (tautan gambar, pisahkan dengan koma) <input name="galeri" placeholder="https://.../1.jpg, https://.../2.jpg"></label>
       <label>Musik latar (tautan mp3) <input name="musik" type="url" placeholder="https://.../lagu.mp3"></label>
       <label>Nama tamu (opsional) <input name="to" placeholder="Bapak/Ibu/Saudara/i"></label>
