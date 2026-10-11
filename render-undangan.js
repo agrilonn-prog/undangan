@@ -27,7 +27,18 @@ const tgl = x => x.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
 const foto = d.galeri ? d.galeri.split(',').map(s => s.trim()).filter(http) : [];
 const adaRek = d.bank && d.norek;
 const loop = `${esc(d.pria)} &amp; ${esc(d.wanita)} ✦ ${when.getDate()}.${when.getMonth()+1}.${when.getFullYear()} ✦ `.repeat(6);
-const menu = [['home','🏠','Beranda'],['acara','📅','Acara'],...(foto.length?[['galeri','🖼','Galeri']]:[]),...(adaRek?[['hadiah','🎁','Hadiah']]:[]),['ucapan','💬','Ucapan']];
+const cerita = (d.cerita || '').split(';').map(x => x.split('|').map(y => y.trim())).filter(a => a[0] && a[1]);
+const tamuKhusus = d.to !== DEFAULT_DATA.to;
+const menu = [['home','🏠','Beranda'],...(cerita.length?[['cerita','💞','Kisah']]:[]),['acara','📅','Acara'],...(foto.length?[['galeri','🖼','Galeri']]:[]),...(adaRek?[['hadiah','🎁','Hadiah']]:[]),...(tamuKhusus?[['tiket','🎫','Tiket']]:[]),['foto','📸','Foto'],['ucapan','💬','Ucapan']];
+const profil = (d.ortupria || d.ortuwanita) ? `<section class="blok" id="mempelai"><h3 class="r">Mempelai</h3><div class="bento r">
+  <article class="glass"><h4>Mempelai pria</h4><div class="jam" style="font-size:1.9rem">${esc(d.pria)}</div><small>Putra dari ${esc(d.ortupria)}</small></article>
+  <article class="glass"><h4>Mempelai wanita</h4><div class="jam" style="font-size:1.9rem">${esc(d.wanita)}</div><small>Putri dari ${esc(d.ortuwanita)}</small></article></div></section>` : '';
+const kisah = cerita.length ? `<section class="blok" id="cerita"><h3 class="r">Kisah kami</h3><ol class="alur">${cerita.map(([y,j,t='']) => `<li class="r"><b>${esc(y)}</b><h4>${esc(j)}</h4><p>${esc(t)}</p></li>`).join('')}</ol></section>` : '';
+const akad = d.acara !== 'resepsi' ? `<article class="glass"><h4>Akad / pemberkatan</h4><div class="jam">${fmtT(when)}</div><small>${fmtD(when)}</small></article>` : '';
+const resepsi = d.acara !== 'akad' ? `<article class="glass"><h4>Resepsi</h4><div class="jam">${fmtT(res)}</div><small>${fmtD(res)}</small></article>` : '';
+const tiket = tamuKhusus ? `<section class="blok" id="tiket"><h3 class="r">Tiket masuk</h3><div class="rek glass r"><div id="qr" class="qr"></div><p><strong>${esc(d.to)}</strong>${d.meja ? ` · Meja ${esc(d.meja)}` : ''}</p><small>Tunjukkan kode ini kepada penerima tamu saat tiba.</small></div></section>` : '';
+const booth = `<section class="blok" id="foto"><h3 class="r">Photobooth</h3><p class="r">Berfoto langsung dari undangan, lalu simpan hasilnya.</p><button class="btn r" id="pb-buka">Buka kamera</button></section>
+<div class="pb" id="pb" hidden><video id="pb-v" autoplay playsinline muted></video><p id="pb-err"></p><div><button class="btn" id="pb-ambil">Ambil &amp; simpan foto</button><button class="btn kecil" id="pb-tutup">Tutup</button></div></div>`;
 
 $('#app').innerHTML = `
 <section class="cover" id="cover" data-l="${T.lambang}">
@@ -53,21 +64,24 @@ $('#app').innerHTML = `
   <div class="marquee" aria-hidden="true"><span>${loop}</span></div>
   <section class="blok"><blockquote class="r">${T.kutipan}${T.sumber ? `<cite>${T.sumber}</cite>` : ''}</blockquote></section>
   <div class="pola"></div>
-  <section class="blok" id="acara"><h3 class="r">Acara</h3>
+  ${profil}${kisah}<section class="blok" id="acara"><h3 class="r">Acara</h3>
     <div class="bento r">
-      <article class="glass"><h4>Akad / pemberkatan</h4><div class="jam">${fmtT(when)}</div><small>${fmtD(when)}</small></article>
-      <article class="glass"><h4>Resepsi</h4><div class="jam">${fmtT(res)}</div><small>${fmtD(res)}</small></article>
+      ${akad}${resepsi}
       <article class="glass lebar"><h4>Lokasi</h4><strong>${esc(d.tempat)}</strong><small>${esc(d.alamat)}</small>
         ${http(d.maps) ? `<a class="btn kecil" href="${esc(d.maps)}" target="_blank" rel="noopener">Buka peta</a>` : ''}</article>
     </div>
   </section>
   ${foto.length ? `<section class="blok" id="galeri"><h3 class="r">Galeri</h3><div class="gal r">${foto.map(f => `<img src="${esc(f)}" alt="Foto prewedding" loading="lazy">`).join('')}</div></section>` : ''}
   ${adaRek ? `<section class="blok" id="hadiah"><h3 class="r">Amplop digital</h3><div class="rek glass r"><p>${esc(d.bank)} a.n. ${esc(d.an)}</p><b>${esc(d.norek)}</b><button class="btn kecil" id="salin">Salin nomor rekening</button></div></section>` : ''}
+  ${tiket}${booth}
   <section class="blok" id="ucapan"><h3 class="r">Ucapan &amp; kehadiran</h3>
     <form class="rsvp glass r" id="rsvp">
       <input name="nama" placeholder="Nama Anda" value="${d.to === DEFAULT_DATA.to ? '' : esc(d.to)}" required>
       <select name="hadir"><option>Hadir</option><option>Tidak hadir</option><option>Masih ragu</option></select>
-      <textarea name="doa" rows="3" placeholder="Ucapan dan doa"></textarea>
+      <input type="hidden" name="stiker" id="stiker">
+      <div class="stiker" id="stikers">${['💐','🤍','🎉','🤲','😍'].map(e => `<button type="button" data-e="${e}">${e}</button>`).join('')}</div>
+      <div class="stiker" id="tmpl">${['Selamat menempuh hidup baru! Semoga bahagia selalu dan dilimpahi berkah.','Turut berbahagia untuk kalian berdua. Doa terbaik menyertai.','Maaf belum bisa hadir. Semoga acaranya lancar dan penuh kebahagiaan.'].map((t,i) => `<button type="button" class="chip-t" data-t="${esc(t)}">Contoh ${i+1}</button>`).join('')}</div>
+      <textarea name="doa" id="doa" rows="3" placeholder="Ucapan dan doa"></textarea>
       <button class="btn">${/^\d{8,15}$/.test(d.wa) ? 'Kirim lewat WhatsApp' : 'Kirim ucapan'}</button>
     </form>
     <ul class="ucapan" id="ucapan-list"></ul>
@@ -112,9 +126,40 @@ const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; }
 const show = () => ($('#ucapan-list').innerHTML = load().map(u => `<li class="glass"><b>${esc(u.n.charAt(0).toUpperCase())}</b><div><small>${esc(u.n)} · ${esc(u.h)}</small>${esc(u.t)}</div></li>`).join(''));
 $('#rsvp').onsubmit = e => {
   e.preventDefault();
-  const f = new FormData(e.target), n = f.get('nama'), h = f.get('hadir'), t = f.get('doa') || '';
+  const f = new FormData(e.target), n = f.get('nama'), h = f.get('hadir'), t = ((f.get('stiker') || '') + ' ' + (f.get('doa') || '')).trim();
   try { localStorage.setItem(KEY, JSON.stringify([{n,h,t}, ...load()].slice(0, 30))); } catch (x) {}
   show(); e.target.reset();
   if (/^\d{8,15}$/.test(d.wa)) window.open(`https://wa.me/${d.wa}?text=${encodeURIComponent(`Halo, saya ${n}. Konfirmasi: ${h}.\n${t}`)}`, '_blank');
 };
 show();
+
+// Warna & huruf kustom (warna dibuat terbaca otomatis)
+const HUR = {elegan:"'Cormorant Garamond',serif",klasik:"'Playfair Display',serif",modern:"'Poppins',sans-serif",tegas:"'Cinzel',serif",arab:"'Amiri',serif"};
+const hx = (d.warna || '').replace('#', '');
+if (/^[0-9a-f]{6}$/i.test(hx)) { const [r,g,b] = [0,2,4].map(i => parseInt(hx.substr(i,2),16)); document.body.style.setProperty('--ac','#'+hx); document.body.style.setProperty('--bt',(r*299+g*587+b*114)/1000 > 150 ? '#161616' : '#fff'); }
+if (HUR[d.huruf]) document.body.style.setProperty('--hf', HUR[d.huruf]);
+
+// Tiket QR untuk check-in
+if ($('#qr') && window.QRCode) new QRCode($('#qr'), {text:`UND|${d.to}|${d.meja || ''}`, width:180, height:180});
+
+// Stiker & contoh ucapan
+$('#stikers').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#stiker').value = b.dataset.e; [...$('#stikers').children].forEach(x => x.classList.toggle('on', x === b)); };
+$('#tmpl').onclick = e => { const b = e.target.closest('button'); if (b) $('#doa').value = b.dataset.t; };
+
+// Virtual photobooth
+let strm;
+$('#pb-buka').onclick = async () => { $('#pb').hidden = false; try { strm = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}}); $('#pb-v').srcObject = strm; } catch (e) { $('#pb-err').textContent = 'Kamera tidak bisa diakses. Izinkan akses kamera di browser.'; } };
+const tutupPb = () => { $('#pb').hidden = true; strm && strm.getTracks().forEach(t => t.stop()); };
+$('#pb-tutup').onclick = tutupPb;
+$('#pb-ambil').onclick = () => {
+  const v = $('#pb-v'); if (!v.videoWidth) return;
+  const w = 720, h = 960, c = Object.assign(document.createElement('canvas'), {width:w, height:h}), x = c.getContext('2d'), cs = getComputedStyle(document.body);
+  const tr = w / h, vr = v.videoWidth / v.videoHeight; let sw = v.videoWidth, sh = v.videoHeight, sx = 0, sy = 0;
+  if (vr > tr) { sw = sh * tr; sx = (v.videoWidth - sw) / 2; } else { sh = sw / tr; sy = (v.videoHeight - sh) / 2; }
+  x.save(); x.translate(w, 0); x.scale(-1, 1); x.drawImage(v, sx, sy, sw, sh, 0, 0, w, h); x.restore();
+  x.strokeStyle = cs.getPropertyValue('--ac').trim() || '#c8a24a'; x.lineWidth = 28; x.strokeRect(14, 14, w - 28, h - 28);
+  x.fillStyle = 'rgba(0,0,0,.5)'; x.fillRect(14, h - 190, w - 28, 176);
+  x.fillStyle = '#fff'; x.textAlign = 'center'; x.font = '700 56px ' + (cs.getPropertyValue('--hf') || 'serif'); x.fillText(`${d.pria} & ${d.wanita}`, w / 2, h - 105);
+  x.font = '600 28px sans-serif'; x.fillText(fmtD(when), w / 2, h - 55);
+  Object.assign(document.createElement('a'), {href:c.toDataURL('image/png'), download:'photobooth.png'}).click();
+};

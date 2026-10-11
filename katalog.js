@@ -17,7 +17,7 @@ function buildUrl() {
   new FormData(form).forEach((v, k) => { if (String(v).trim()) p.set(k, String(v).trim()); });
   return new URL('undangan.html?' + p, location.href).href;
 }
-function update() { const u = buildUrl(); $('#link').value = u; $('#open').href = u; live.src = u; }
+function update() { const u = buildUrl(); try { const b = new URL(u); ['to','meja','acara'].forEach(x => b.searchParams.delete(x)); localStorage.setItem('undangan:base', b.href); } catch (e) {} $('#link').value = u; $('#open').href = u; live.src = u; }
 grid.onclick = e => { const b = e.target.closest('button[data-t]'); if (!b) return; sel.value = b.dataset.t; update(); $('#editor').scrollIntoView({behavior:'smooth'}); };
 let timer; form.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(update, 400); });
 $('#copy').onclick = async e => { await navigator.clipboard.writeText($('#link').value); e.target.textContent = 'Tersalin'; setTimeout(() => (e.target.textContent = 'Salin tautan'), 1500); };

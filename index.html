@@ -12,7 +12,7 @@
 <header class="hero">
   <h1>Undangan pernikahan digital, siap dibagikan lewat tautan</h1>
   <p>Empat belas template: Islami, Kristiani, Hindu, Buddha, Tionghoa, dan adat daerah. Isi data, lalu kirim tautan ke tiap tamu lewat WhatsApp.</p>
-  <a class="btn" href="#editor">Isi data undangan</a>
+  <a class="btn" href="#editor">Isi data undangan</a> <a class="btn ghost" href="dashboard.html">Dashboard tamu</a>
 </header>
 
 <main>
@@ -22,6 +22,15 @@
     <div class="grid" id="grid"></div>
   </section>
 
+  <section aria-labelledby="h-fitur"><h2 id="h-fitur">Semua yang dibutuhkan undangan Anda</h2>
+  <div class="fitur">
+    <div><h3>Tamu personal</h3><p>Setiap tamu memegang tautan dengan namanya sendiri, plus nomor meja dan pilihan acara.</p></div>
+    <div><h3>Check-in QR</h3><p>Tiket QR di undangan, dipindai dari dashboard. Nama tamu muncul di layar sapa.</p></div>
+    <div><h3>Photobooth</h3><p>Tamu berfoto dari undangan dengan bingkai nama mempelai dan menyimpannya.</p></div>
+    <div><h3>Kisah cinta</h3><p>Linimasa perjalanan kalian, lengkap dengan profil dan orang tua mempelai.</p></div>
+    <div><h3>Warna &amp; huruf</h3><p>Ganti aksen dan huruf judul; teks tombol menyesuaikan agar tetap terbaca.</p></div>
+    <div><h3>Planner</h3><p>Anggaran dan daftar tugas persiapan di dashboard, tanpa akun.</p></div>
+  </div></section>
   <section id="editor" class="editor" aria-labelledby="h-editor">
     <form id="form">
       <h2 id="h-editor">Data undangan</h2>
@@ -38,6 +47,11 @@
       <label>Nomor rekening <input name="norek" inputmode="numeric"></label>
       <label>Atas nama <input name="an"></label>
       <label>Foto sampul (tautan gambar) <input name="foto" type="url" placeholder="https://..."></label>
+      <label>Orang tua mempelai pria <input name="ortupria" placeholder="Bpk. Hadi &amp; Ibu Sari"></label>
+      <label>Orang tua mempelai wanita <input name="ortuwanita"></label>
+      <label>Kisah cinta (tahun|judul|cerita; pisahkan dengan titik koma) <input name="cerita" placeholder="2019|Bertemu|Kami bertemu di kampus;2025|Lamaran|Hari yang tak terlupakan"></label>
+      <label>Warna aksen (hex, opsional) <input name="warna" placeholder="#c8a24a"></label>
+      <label>Huruf judul <select name="huruf"><option value="">Bawaan tema</option><option value="elegan">Elegan</option><option value="klasik">Klasik</option><option value="modern">Modern</option><option value="tegas">Tegas</option><option value="arab">Amiri</option></select></label>
       <label>Galeri foto (tautan gambar, pisahkan dengan koma) <input name="galeri" placeholder="https://.../1.jpg, https://.../2.jpg"></label>
       <label>Musik latar (tautan mp3) <input name="musik" type="url" placeholder="https://.../lagu.mp3"></label>
       <label>Nama tamu (opsional) <input name="to" placeholder="Bapak/Ibu/Saudara/i"></label>
@@ -55,6 +69,12 @@
   <textarea id="tamu" rows="6" placeholder="Pak Budi|081234567890&#10;Keluarga Bu Rina|0856xxxxxxx"></textarea>
   <div><button type="button" class="btn" id="bulk">Buat tautan</button> <button type="button" class="btn ghost" id="salinsemua" hidden>Salin semua</button></div>
   <ul id="hasil"></ul>
+</section>
+<section class="faq" aria-labelledby="h-faq"><h2 id="h-faq">Pertanyaan umum</h2>
+  <details><summary>Apakah data saya disimpan di server?</summary><p>Tidak. Data dasbor (tamu, anggaran, tugas) tersimpan di browser perangkat Anda. Gunakan perangkat yang sama, dan ekspor CSV sebagai cadangan.</p></details>
+  <details><summary>Apakah ucapan tamu terkumpul di satu tempat?</summary><p>Belum. Ucapan tersimpan di perangkat tiap tamu, dan RSVP dikirim lewat WhatsApp. Untuk kotak ucapan bersama dibutuhkan basis data online.</p></details>
+  <details><summary>Bisakah tautan dikunci agar tidak diteruskan?</summary><p>Tidak di versi statis ini. Pengunci tautan membutuhkan server untuk memeriksa tiap pembukaan.</p></details>
+  <details><summary>Cara memasang di GitHub Pages?</summary><p>Unggah semua file ke satu repo, lalu aktifkan Pages dari branch main.</p></details>
 </section>
 </main>
 <footer>Dibuat dengan HTML, CSS, dan JavaScript biasa. Tanpa server.</footer>

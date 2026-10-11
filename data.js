@@ -16,4 +16,4 @@ const TEMPLATES = [
  {id:'tionghoa',nama:'Tionghoa Shuangxi',tag:['tionghoa'],lambang:'囍',desc:'Merah dan emas, lambang kebahagiaan ganda.',salam:'Dengan sukacita ganda, kami mengundang Anda',kutipan:'Dua keluarga menyatu, kebahagiaan berlipat ganda.',sumber:''}
 ];
 const FILTER = {semua:'Semua',islami:'Islami',kristiani:'Kristiani',['hindu-buddha']:'Hindu & Buddha',tionghoa:'Tionghoa',adat:'Adat daerah',umum:'Umum'};
-const DEFAULT_DATA = {t:'klasik',pria:'Raka',wanita:'Sinta',tanggal:'2026-12-20T09:00',resepsi:'',tempat:'Gedung Serbaguna Pemuda',alamat:'Jl. Pemuda No. 1, Semarang',maps:'',wa:'',to:'Bapak/Ibu/Saudara/i',bank:'',norek:'',an:'',foto:'',musik:'',galeri:''};
+const DEFAULT_DATA = {t:'klasik',pria:'Raka',wanita:'Sinta',tanggal:'2026-12-20T09:00',resepsi:'',tempat:'Gedung Serbaguna Pemuda',alamat:'Jl. Pemuda No. 1, Semarang',maps:'',wa:'',to:'Bapak/Ibu/Saudara/i',bank:'',norek:'',an:'',foto:'',musik:'',galeri:'',warna:'',huruf:'',ortupria:'',ortuwanita:'',cerita:'',acara:'',meja:''};
