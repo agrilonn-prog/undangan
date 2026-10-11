@@ -1,22 +1,19 @@
-// Daftar template. Tambah template baru: tambahkan objek di sini
-// lalu buat kelas ".t-<id>" di css/undangan.css.
+// Tambah template: tambahkan objek di sini + kelas ".t-<id>" di tema-undangan.css
 const TEMPLATES = [
-  { id: 'klasik',  nama: 'Klasik Emas',    desc: 'Gading hangat dengan aksen emas dan huruf serif anggun.' },
-  { id: 'rustic',  nama: 'Rustic Sage',    desc: 'Hijau sage dan krem, nuansa kebun untuk pesta outdoor.' },
-  { id: 'modern',  nama: 'Modern Minimal', desc: 'Putih bersih, huruf tebal, aksen oranye tegas.' },
-  { id: 'jawa',    nama: 'Adat Jawa',      desc: 'Cokelat sogan dan emas, cocok untuk pernikahan adat.' },
-  { id: 'islami',  nama: 'Islami Zamrud',  desc: 'Hijau zamrud dengan ayat dan salam pembuka.' }
+ {id:'klasik',nama:'Klasik Emas',tag:['umum'],lambang:'❦',desc:'Gading hangat, aksen emas, huruf serif anggun.',salam:'Dengan penuh syukur, kami mengundang Anda',kutipan:'Cinta tidak hanya saling memandang, tetapi bersama-sama memandang ke arah yang sama.',sumber:'Antoine de Saint-Exupéry'},
+ {id:'rustic',nama:'Rustic Sage',tag:['umum'],lambang:'❀',desc:'Hijau sage dan krem, nuansa kebun.',salam:'Dengan penuh sukacita, kami mengundang Anda',kutipan:'Dua hati, satu langkah, di bawah langit yang sama.',sumber:''},
+ {id:'modern',nama:'Modern Minimal',tag:['umum'],lambang:'♡',desc:'Putih bersih, huruf tebal, aksen oranye.',salam:'Kami akan menikah, dan Anda diundang',kutipan:'Sederhana di hari ini, bahagia untuk selamanya.',sumber:''},
+ {id:'islami',nama:'Islami Zamrud',tag:['islami'],lambang:'☪',desc:'Zamrud dan emas, motif geometris, tanggal Hijriah.',salam:'Assalamu’alaikum warahmatullahi wabarakatuh',kutipan:'Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan untukmu agar kamu merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang.',sumber:'QS. Ar-Rum: 21'},
+ {id:'minang',nama:'Minang Songket',tag:['adat','islami'],lambang:'◈',desc:'Merah marun, emas songket, nuansa Minangkabau.',salam:'Assalamu’alaikum warahmatullahi wabarakatuh',kutipan:'Adat basandi syarak, syarak basandi Kitabullah.',sumber:'Pepatah Minangkabau'},
+ {id:'jawa',nama:'Adat Jawa Sogan',tag:['adat'],lambang:'❖',desc:'Cokelat sogan, emas, motif kawung; lengkap dengan hari pasaran.',salam:'Sugeng rawuh, kanthi hormat kula ngaturi pangapunten lan pangajeng-ajeng',kutipan:'Mugi karaharjan lan kabagyan tansah dados panggulawentah sakulawarga.',sumber:''},
+ {id:'sunda',nama:'Sunda Hejo',tag:['adat'],lambang:'❧',desc:'Hijau daun dan putih, tenang seperti pegunungan Priangan.',salam:'Sampurasun, kalayan kasuka-rasa, kami ngondang Anjeun',kutipan:'Silih asah, silih asih, silih asuh.',sumber:'Falsafah Sunda'},
+ {id:'batak',nama:'Batak Ulos',tag:['adat','kristiani'],lambang:'✦',desc:'Merah, hitam, putih khas ulos; sapaan Horas.',salam:'Horas! Mangihuthon ma hami tu pesta ni ulaon',kutipan:'Somba marhula-hula, elek marboru, manat mardongan tubu.',sumber:'Dalihan Na Tolu'},
+ {id:'bali',nama:'Bali Poleng',tag:['adat','hindu-buddha'],lambang:'ॐ',desc:'Kotak poleng, emas dan krem, salam Om Swastyastu.',salam:'Om Swastyastu',kutipan:'Atas asung kertha wara nugraha Ida Sang Hyang Widhi Wasa, kami mohon doa restu Anda.',sumber:''},
+ {id:'kristen',nama:'Kristen Kasih',tag:['kristiani'],lambang:'✝',desc:'Biru lembut dan putih, ayat tentang kasih.',salam:'Salam sejahtera dalam kasih Kristus',kutipan:'Demikianlah tinggal ketiga hal ini, yaitu iman, pengharapan dan kasih, dan yang paling besar di antaranya ialah kasih.',sumber:'1 Korintus 13:13'},
+ {id:'katolik',nama:'Katolik Sakramen',tag:['kristiani'],lambang:'✝',desc:'Ungu dan gading, ayat pemberkatan nikah.',salam:'Salam damai sejahtera dalam Kristus',kutipan:'Apa yang telah dipersatukan Allah, janganlah diceraikan manusia.',sumber:'Markus 10:9'},
+ {id:'hindu',nama:'Hindu Swastika',tag:['hindu-buddha'],lambang:'ॐ',desc:'Kunyit dan jingga marigold, salam Om Swastyastu.',salam:'Om Swastyastu',kutipan:'Semoga Ida Sang Hyang Widhi Wasa melimpahkan kebahagiaan dan keharmonisan bagi kedua mempelai.',sumber:''},
+ {id:'buddha',nama:'Buddha Teratai',tag:['hindu-buddha'],lambang:'☸',desc:'Kuning keemasan, tenang dan hangat.',salam:'Namo Buddhaya, Om Swastyastu',kutipan:'Semoga semua makhluk berbahagia.',sumber:'Sabbe satta bhavantu sukhitatta'},
+ {id:'tionghoa',nama:'Tionghoa Shuangxi',tag:['tionghoa'],lambang:'囍',desc:'Merah dan emas, lambang kebahagiaan ganda.',salam:'Dengan sukacita ganda, kami mengundang Anda',kutipan:'Dua keluarga menyatu, kebahagiaan berlipat ganda.',sumber:''}
 ];
-
-// Data bawaan, ditimpa oleh parameter di tautan (?pria=...&wanita=...)
-const DEFAULT_DATA = {
-  t: 'klasik',
-  pria: 'Raka',
-  wanita: 'Sinta',
-  tanggal: '2026-12-20T09:00',
-  tempat: 'Gedung Serbaguna Pemuda',
-  alamat: 'Jl. Pemuda No. 1, Semarang',
-  maps: '',
-  wa: '',
-  to: 'Bapak/Ibu/Saudara/i'
-};
+const FILTER = {semua:'Semua',islami:'Islami',kristiani:'Kristiani',['hindu-buddha']:'Hindu & Buddha',tionghoa:'Tionghoa',adat:'Adat daerah',umum:'Umum'};
+const DEFAULT_DATA = {t:'klasik',pria:'Raka',wanita:'Sinta',tanggal:'2026-12-20T09:00',resepsi:'',tempat:'Gedung Serbaguna Pemuda',alamat:'Jl. Pemuda No. 1, Semarang',maps:'',wa:'',to:'Bapak/Ibu/Saudara/i',bank:'',norek:'',an:'',foto:'',musik:''};

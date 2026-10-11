@@ -11,13 +11,14 @@
 <body>
 <header class="hero">
   <h1>Undangan pernikahan digital, siap dibagikan lewat tautan</h1>
-  <p>Pilih satu dari lima template, isi data mempelai, lalu kirim tautannya lewat WhatsApp.</p>
+  <p>Empat belas template: Islami, Kristiani, Hindu, Buddha, Tionghoa, dan adat daerah. Isi data, lalu kirim tautan ke tiap tamu lewat WhatsApp.</p>
   <a class="btn" href="#editor">Isi data undangan</a>
 </header>
 
 <main>
   <section aria-labelledby="h-katalog">
     <h2 id="h-katalog">Pilih template</h2>
+    <div class="chips" id="chips" role="group" aria-label="Filter template"></div>
     <div class="grid" id="grid"></div>
   </section>
 
@@ -28,10 +29,16 @@
       <label>Nama mempelai pria <input name="pria" placeholder="Raka"></label>
       <label>Nama mempelai wanita <input name="wanita" placeholder="Sinta"></label>
       <label>Tanggal &amp; jam akad <input name="tanggal" type="datetime-local"></label>
+      <label>Jam resepsi (opsional, bawaan 2 jam setelah akad) <input name="resepsi" type="datetime-local"></label>
       <label>Nama tempat <input name="tempat" placeholder="Gedung Serbaguna"></label>
       <label>Alamat <input name="alamat" placeholder="Jl. Pemuda No. 1, Semarang"></label>
       <label>Tautan Google Maps <input name="maps" type="url" placeholder="https://maps.app.goo.gl/..."></label>
       <label>Nomor WhatsApp untuk RSVP <input name="wa" inputmode="numeric" placeholder="6281234567890"></label>
+      <label>Bank amplop digital <input name="bank" placeholder="BCA"></label>
+      <label>Nomor rekening <input name="norek" inputmode="numeric"></label>
+      <label>Atas nama <input name="an"></label>
+      <label>Foto sampul (tautan gambar) <input name="foto" type="url" placeholder="https://..."></label>
+      <label>Musik latar (tautan mp3) <input name="musik" type="url" placeholder="https://.../lagu.mp3"></label>
       <label>Nama tamu (opsional) <input name="to" placeholder="Bapak/Ibu/Saudara/i"></label>
       <div class="out">
         <input id="link" readonly aria-label="Tautan undangan">
@@ -41,6 +48,13 @@
     </form>
     <div class="phone"><iframe id="live" title="Pratinjau undangan"></iframe></div>
   </section>
+<section class="bulk" aria-labelledby="h-bulk">
+  <h2 id="h-bulk">Tautan massal untuk tamu</h2>
+  <p>Satu tamu per baris. Tambahkan nomor WhatsApp dengan tanda | agar tombol kirim langsung ke orangnya.</p>
+  <textarea id="tamu" rows="6" placeholder="Pak Budi|081234567890&#10;Keluarga Bu Rina|0856xxxxxxx"></textarea>
+  <div><button type="button" class="btn" id="bulk">Buat tautan</button> <button type="button" class="btn ghost" id="salinsemua" hidden>Salin semua</button></div>
+  <ul id="hasil"></ul>
+</section>
 </main>
 <footer>Dibuat dengan HTML, CSS, dan JavaScript biasa. Tanpa server.</footer>
 
