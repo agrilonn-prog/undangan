@@ -508,8 +508,11 @@ const Cerdas = (() => {
   }
 
   /* ---------- 11. PEMERIKSA FORM UNDANGAN ---------- */
-  function periksaForm(d) {
+  function periksaForm(d, contoh = {}) {
     const m = [];
+    const masihContoh = ['wa', 'norek', 'bank', 'an', 'ortupria', 'ortuwanita', 'tempat', 'alamat', 'maps'].filter(k => contoh[k] && d[k] === contoh[k]);
+    if (masihContoh.length) m.push({t: masihContoh.includes('wa') || masihContoh.includes('norek') ? 'tinggi' : 'sedang', s: `Beberapa isian masih data contoh (${masihContoh.join(', ')}). Ganti dengan data Anda sebelum membagikan undangan, terutama nomor WhatsApp dan rekening.`});
+    if (['foto', 'galeri', 'musik'].some(k => contoh[k] && d[k] === contoh[k])) m.push({t: 'info', s: 'Foto sampul, galeri, atau musik masih bawaan contoh (ilustrasi). Ganti dengan foto Anda: unggah ke folder foto/ atau tempel tautan https.'});
     const tgl = d.tanggal ? new Date(d.tanggal) : null;
     if (tgl && !isNaN(tgl) && tgl < new Date()) m.push({t: 'sedang', s: 'Tanggal akad sudah lewat. Pastikan tahun dan tanggalnya benar.'});
     if (d.resepsi && d.tanggal && new Date(d.resepsi) < new Date(d.tanggal)) m.push({t: 'sedang', s: 'Jam resepsi lebih awal dari akad. Kosongkan jika ingin otomatis 2 jam setelah akad.'});
@@ -523,7 +526,7 @@ const Cerdas = (() => {
       const salah = d.cerita.split(';').filter(x => x.trim() && x.split('|').length < 2);
       if (salah.length) m.push({t: 'sedang', s: 'Kisah cinta: setiap bagian harus berformat tahun|judul|cerita, dipisah titik koma.'});
     }
-    if (d.galeri && d.galeri.split(',').some(x => x.trim() && !/^https?:\/\//.test(x.trim()))) m.push({t: 'info', s: 'Ada tautan galeri yang tidak diawali https:// dan akan diabaikan.'});
+    if (d.galeri && d.galeri.split(',').some(x => x.trim() && !/^(https?:\/\/|foto\/|\.{1,2}\/)/.test(x.trim()))) m.push({t: 'info', s: 'Ada alamat galeri yang bukan https:// atau foto/… dan akan diabaikan.'});
     if (d.t === 'islami' || d.t === 'minang') m.push({t: 'info', s: 'Tema ini menampilkan tanggal Hijriah otomatis dari tanggal akad.'});
     if (d.t === 'jawa') m.push({t: 'info', s: 'Tema ini menampilkan hari pasaran Jawa otomatis dari tanggal akad.'});
     if (d.t === 'tionghoa') m.push({t: 'info', s: 'Tema ini menampilkan penanggalan Imlek otomatis dari tanggal akad.'});

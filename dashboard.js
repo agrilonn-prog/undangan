@@ -28,7 +28,7 @@
   const BASE = new URL('undangan.html', location.href);
   function tautan(g) {
     const u = new URL(BASE);
-    Object.entries(D()).forEach(([k, v]) => { v = String(v == null ? '' : v).trim(); if (v && k !== 'to' && v !== DEFAULT_DATA[k]) u.searchParams.set(k, v); });
+    Object.entries(D()).forEach(([k, v]) => { v = String(v == null ? '' : v).trim(); if (k !== 'to' && v !== String(DEFAULT_DATA[k] == null ? '' : DEFAULT_DATA[k])) u.searchParams.set(k, v); });
     u.searchParams.set('to', Cerdas.parseNama(g.nama).tampil);
     if (g.meja) u.searchParams.set('meja', g.meja);
     if (g.acara) u.searchParams.set('acara', g.acara);
@@ -65,7 +65,10 @@
     const st = Cerdas.statistik(S.tamu), rd = Cerdas.radar(S, new Date(), hariH());
     const warna = rd.skor >= 85 ? 'var(--k-ok)' : rd.skor >= 65 ? '#8a9a1b' : rd.skor >= 40 ? 'var(--k-warn)' : 'var(--k-bad)';
     const K = 2 * Math.PI * 52, ikon = {tinggi: '🔴', sedang: '🟠', info: '🔵'};
-    return `${Object.keys(S.data).length ? '' : '<div class="catatan">Data undangan belum diisi, jadi tautan tamu memakai contoh bawaan (Raka &amp; Sinta). <a href="index.html#editor">Isi data undangan dulu</a>.</div>'}
+    const kosong = !S.tamu.length ? `<div class="catatan"><b>Dashboard masih kosong.</b> Ingin melihat cara kerjanya dengan data lengkap?<br>
+      <button class="btn kecil" data-aksi="contoh-muat" data-mode="persiapan">Isi dengan data contoh (2 bulan sebelum acara)</button>
+      <button class="btn kecil ghost" data-aksi="contoh-muat" data-mode="harih">Isi dengan data contoh (hari H)</button></div>` : '';
+    return `${kosong}${Object.keys(S.data).length ? '' : '<div class="catatan">Data undangan belum diisi, jadi tautan tamu memakai contoh bawaan (Raka &amp; Sinta). <a href="index.html#editor">Isi data undangan dulu</a>.</div>'}
     <section class="stat" aria-label="Statistik tamu">
       <div><b>${st.tamu}</b><span>undangan · ${st.pax} orang</span></div>
       <div><b>${st.hadir}</b><span>hadir · ${st.paxHadir} orang</span></div>
@@ -544,6 +547,8 @@
       <div class="card"><h2>Ekspor</h2>
         <button class="btn ghost" data-aksi="ekspor-csv">Daftar tamu (.csv)</button>
         <h3>Tentang privasi</h3><p class="mut">Tidak ada data yang dikirim ke server. Ucapan tamu di undangan hanya tersimpan di perangkat masing-masing tamu; karena itu RSVP dikumpulkan lewat WhatsApp.</p>
+        <h3>Data contoh</h3><p class="mut">Mengisi seluruh dashboard dengan 40 tamu contoh, anggaran, tugas, dan (untuk hari H) check-in, doorprize, dan hadiah. Nomor WhatsApp di data contoh adalah rekaan. Data yang ada akan diganti.</p>
+        <button class="btn kecil" data-aksi="contoh-muat" data-mode="persiapan">Muat contoh: persiapan</button><button class="btn kecil ghost" data-aksi="contoh-muat" data-mode="harih">Muat contoh: hari H</button>
         <h3>Zona berbahaya</h3><button class="btn bahaya ghost" data-aksi="reset">Hapus semua data dashboard</button></div></section>`;
   }
 
@@ -621,6 +626,11 @@
     'dp-undi': undi,
     'dp-hapus': a => { S.pemenang = S.pemenang.filter(p => p.id !== a.dataset.id); simpan(); $('#dp-daftar').innerHTML = htmlPemenang(); },
     'hd-hapus': a => { S.hadiah = S.hadiah.filter(h => h.id !== a.dataset.id); simpan(); $('#hd-daftar').innerHTML = htmlHadiah(); },
+    'contoh-muat': a => {
+      if ((S.tamu.length || S.anggaran.items.length) && !confirm('Mengisi data contoh akan MENGGANTI semua data dashboard yang ada. Lanjutkan? (Unduh cadangan dulu bila perlu.)')) return;
+      Simpan.replace(Contoh.buat(a.dataset.mode)); S = Simpan.state; usulan = []; rencana = null; saring = 'semua'; cariTeks = '';
+      pindah('ringkas'); toast(a.dataset.mode === 'harih' ? 'Data contoh hari H dimuat' : 'Data contoh persiapan dimuat');
+    },
     cetak: () => window.print(),
     'cadangan-unduh': () => unduh(`cadangan-undangan-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(S, null, 2), 'application/json'),
     reset: () => { if (prompt('Ini menghapus SEMUA data tamu, anggaran, tugas, dan isian undangan di browser ini.\nKetik HAPUS untuk melanjutkan.') === 'HAPUS') { Simpan.reset(); S = Simpan.state; render(); toast('Semua data dihapus'); } }
@@ -710,5 +720,12 @@
   addEventListener('pagehide', hentiKamera);
   addEventListener('hashchange', () => { const h = location.hash.slice(1); if (h !== tab && TABS.some(t => t[0] === h)) pindah(h); });
 
+  // Tautan ?contoh=persiapan atau ?contoh=harih memuat data contoh (meminta konfirmasi bila sudah ada data)
+  const qc = new URLSearchParams(location.search).get('contoh');
+  if (qc === 'persiapan' || qc === 'harih') {
+    const ada = S.tamu.length || S.anggaran.items.length;
+    if (!ada || confirm('Memuat data contoh akan mengganti data dashboard yang ada. Lanjutkan?')) { Simpan.replace(Contoh.buat(qc)); S = Simpan.state; }
+    history.replaceState(null, '', location.pathname + location.hash);
+  }
   render();
 })();

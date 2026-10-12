@@ -15,15 +15,23 @@
 
   /* ----- Data formulir ----- */
   const baca = () => Object.fromEntries(new FormData(form));
+  // Kolom yang dikosongkan sengaja dikirim sebagai nilai kosong bila bawaannya terisi (mis. rekening contoh),
+  // supaya data contoh tidak bocor ke tamu. Pengecualian: nama tamu (to) dibiarkan memakai sapaan umum.
   function tautan(d, tambahan = {}) {
     const u = new URL(BASE), semua = {...d, ...tambahan};
-    Object.entries(semua).forEach(([k, v]) => { v = String(v == null ? '' : v).trim(); if (v && v !== DEFAULT_DATA[k]) u.searchParams.set(k, v); });
+    Object.entries(semua).forEach(([k, v]) => {
+      v = String(v == null ? '' : v).trim();
+      if (k === 'to' && !v) return;
+      if (v !== String(DEFAULT_DATA[k] == null ? '' : DEFAULT_DATA[k])) u.searchParams.set(k, v);
+    });
     return u.href;
   }
   // Isi formulir dari data tersimpan (atau ?t=jawa di alamat halaman)
   $('#t').innerHTML = TEMPLATES.map(t => `<option value="${t.id}">${esc(t.nama)}</option>`).join('');
   const awalQ = new URLSearchParams(location.search);
-  Object.entries({...S.data, ...(awalQ.get('t') ? {t: awalQ.get('t')} : {})}).forEach(([k, v]) => { if (form.elements[k]) form.elements[k].value = v; });
+  // Kunjungan pertama: formulir terisi data contoh lengkap (kecuali nama tamu)
+  const {to: _to, ...contohAwal} = DEFAULT_DATA;
+  Object.entries({...(Object.keys(S.data).length ? S.data : contohAwal), ...(awalQ.get('t') ? {t: awalQ.get('t')} : {})}).forEach(([k, v]) => { if (form.elements[k]) form.elements[k].value = v; });
   if (!form.elements.t.value) form.elements.t.value = TEMPLATES[0].id;
 
   /* ----- Rapikan isian secara cerdas saat selesai mengetik ----- */
@@ -45,9 +53,9 @@
     const d = baca(), link = tautan(d);
     $('#link').value = link; $('#open').href = link;
     Simpan.reload(); // muat ulang dulu agar perubahan dari tab dashboard tidak tertimpa
-    Simpan.state.data = Object.fromEntries(Object.entries(d).filter(([, v]) => String(v).trim()));
+    Simpan.state.data = {...d}; // simpan juga kolom kosong agar tidak kembali ke data contoh
     Simpan.save();
-    $('#periksa').innerHTML = Cerdas.periksaForm(d).map(m => `<p class="${m.t}">${esc(m.s)}</p>`).join('');
+    $('#periksa').innerHTML = Cerdas.periksaForm(d, DEFAULT_DATA).map(m => `<p class="${m.t}">${esc(m.s)}</p>`).join('');
     clearTimeout(tunda);
     tunda = setTimeout(() => { if (live.getAttribute('src') !== link) live.src = link; }, cepat ? 0 : 450);
   }
@@ -68,7 +76,7 @@
     let daftar = TEMPLATES.filter(t => filter === 'semua' || t.tag.includes(filter));
     if (cocokIds.length) daftar = [...daftar].sort((a, b) => (cocokIds.includes(b.id) ? 1 : 0) - (cocokIds.includes(a.id) ? 1 : 0));
     grid.innerHTML = daftar.map(t => {
-      const prev = tautan({t: t.id, pria: d.pria, wanita: d.wanita, tanggal: d.tanggal, zona: d.zona});
+      const prev = tautan({t: t.id, pria: d.pria, wanita: d.wanita, tanggal: d.tanggal, zona: d.zona, foto: d.foto});
       return `<article class="kartu ${cocokIds.includes(t.id) ? 'cocok' : ''}">
         ${cocokIds.includes(t.id) ? '<span class="lencana">Cocok untuk Anda</span>' : ''}
         <div class="prev"><iframe loading="lazy" tabindex="-1" aria-hidden="true" title="Pratinjau ${esc(t.nama)}" src="${esc(prev)}"></iframe></div>
