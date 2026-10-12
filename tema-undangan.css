@@ -18,7 +18,8 @@
 .t-sinematik{--bg:#07080c;--fg:#f2efe9;--ac:#e8c27a;--card:#12141b;--hf:'Cormorant Garamond',serif;--rr:4px}
 .t-salju{--bg:#eaf2fb;--fg:#1d2b3f;--ac:#4a78b8;--card:#fff;--bt:#fff;--hf:'Poppins',sans-serif;--rr:20px;--pola:radial-gradient(circle,#fff 3px,transparent 4px) 0 0/16px 16px}
 .t-vintage{--bg:#efe3cc;--fg:#4a3a26;--ac:#9a5b2e;--card:#f8efdc;--bt:#fff;--hf:'Playfair Display',serif;--rr:4px;--pola:repeating-linear-gradient(90deg,var(--ac) 0 6px,transparent 6px 10px)}
-:root{--rr:24px}.t-batak,.t-jawa{--rr:6px}.t-tionghoa,.t-bali{--rr:12px}
+:root{--rr:24px}body{--rr:var(--r)}
+.t-batak,.t-jawa{--rr:6px}.t-tionghoa,.t-bali{--rr:12px}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 var(--bf);overflow:hidden;-webkit-font-smoothing:antialiased}

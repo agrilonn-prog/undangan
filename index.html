@@ -16,6 +16,16 @@
 </header>
 
 <main>
+  <section class="cerdas" aria-labelledby="h-cerdas">
+    <h3 id="h-cerdas">✨ Asisten pemilih template</h3>
+    <p>Ceritakan pernikahan impian Anda dengan kata-kata sendiri. Asisten akan memilihkan template yang paling cocok beserta alasannya.</p>
+    <div class="baris">
+      <textarea id="cerita-rek" rows="2" aria-label="Ceritakan pernikahan Anda" placeholder="Contoh: Kami orang Jawa dan muslim, akad di masjid, suasana sederhana dan hangat"></textarea>
+      <button type="button" class="btn" id="rek-btn">Rekomendasikan</button>
+    </div>
+    <div class="rek-hasil" id="rek-hasil" aria-live="polite"></div>
+  </section>
+
   <section aria-labelledby="h-katalog">
     <h2 id="h-katalog">Pilih template</h2>
     <div class="chips" id="chips" role="group" aria-label="Filter template"></div>
@@ -65,6 +75,7 @@
       <label>Galeri foto (tautan gambar, pisahkan dengan koma) <input name="galeri" placeholder="https://.../1.jpg, https://.../2.jpg"></label>
       <label>Musik latar (tautan mp3) <input name="musik" type="url" placeholder="https://.../lagu.mp3"></label>
       <label>Nama tamu (opsional) <input name="to" placeholder="Bapak/Ibu/Saudara/i"></label>
+      <div class="periksa" id="periksa" aria-live="polite"></div>
       <div class="out">
         <input id="link" readonly aria-label="Tautan undangan">
         <button type="button" class="btn" id="copy">Salin tautan</button>
@@ -75,9 +86,9 @@
   </section>
 <section class="bulk" aria-labelledby="h-bulk">
   <h2 id="h-bulk">Tautan massal untuk tamu</h2>
-  <p>Satu tamu per baris. Tambahkan nomor WhatsApp dengan tanda | agar tombol kirim langsung ke orangnya.</p>
-  <textarea id="tamu" rows="6" placeholder="Pak Budi|081234567890&#10;Keluarga Bu Rina|0856xxxxxxx"></textarea>
-  <div><button type="button" class="btn" id="bulk">Buat tautan</button> <button type="button" class="btn ghost" id="salinsemua" hidden>Salin semua</button></div>
+  <p>Satu tamu per baris dengan format <code>Nama|WhatsApp|Meja|Acara</code> (semua setelah nama boleh dikosongkan; acara diisi <code>akad</code> atau <code>resepsi</code>). Nama dirapikan otomatis dan nomor 08… diubah ke 62…</p>
+  <textarea id="tamu" rows="6" placeholder="pak budi|081234567890|3|akad&#10;keluarga bu rina|0856xxxxxxx&#10;Dewi Lestari"></textarea>
+  <div><button type="button" class="btn" id="bulk">Buat tautan</button> <button type="button" class="btn ghost" id="salinsemua" hidden>Salin semua</button> <button type="button" class="btn ghost" id="kedash" hidden>Kirim ke dashboard</button></div>
   <ul id="hasil"></ul>
 </section>
 <section class="faq" aria-labelledby="h-faq"><h2 id="h-faq">Pertanyaan umum</h2>
@@ -89,7 +100,10 @@
 </main>
 <footer>Dibuat dengan HTML, CSS, dan JavaScript biasa. Tanpa server.</footer>
 
+<div id="toast" role="status" aria-live="polite"></div>
 <script src="data.js"></script>
+<script src="penyimpanan.js"></script>
+<script src="smart.js"></script>
 <script src="katalog.js"></script>
 </body>
 </html>

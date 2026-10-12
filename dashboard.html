@@ -1,40 +1,32 @@
 <!DOCTYPE html>
-<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard tamu</title>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Tamu — Undangan Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="katalog.css"></head>
-<body>
-<header class="hero"><h1>Dashboard tamu</h1><p>Kelola tamu, check-in dengan QR, dan persiapan acara. Data tersimpan di browser ini.</p><a class="btn ghost" href="index.html">Kembali ke katalog</a></header>
-<main>
-<div class="chips" id="tabs" role="group"><button class="chip" data-p="tamu" aria-pressed="true">Daftar tamu</button><button class="chip" data-p="cek" aria-pressed="false">Check-in QR</button><button class="chip" data-p="plan" aria-pressed="false">Planner</button></div>
+<link rel="stylesheet" href="katalog.css">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body class="dash">
+<header class="dh">
+  <div>
+    <a href="index.html">← Kembali ke template</a>
+    <h1 id="judul">Dashboard tamu</h1>
+    <p id="subjudul"></p>
+  </div>
+  <div class="hmin" id="hmin" aria-live="polite"></div>
+</header>
+<nav class="tabs" id="tabs" role="tablist" aria-label="Bagian dashboard"></nav>
+<main id="panel" tabindex="-1"></main>
 
-<section id="p-tamu" class="pane">
-  <label>Tautan dasar undangan (otomatis dari katalog) <input id="base" placeholder="Isi data di katalog lebih dulu"></label>
-  <div class="stat" id="stat"></div>
-  <form id="fg" class="baris"><input name="n" placeholder="Nama tamu" required><input name="wa" placeholder="WhatsApp" inputmode="numeric"><input name="meja" placeholder="Meja"><select name="acara"><option value="semua">Semua acara</option><option value="akad">Akad saja</option><option value="resepsi">Resepsi saja</option></select><button class="btn">Tambah</button></form>
-  <details><summary>Impor banyak tamu</summary><textarea id="imp" rows="4" placeholder="Nama|0812...|Meja (satu per baris)"></textarea><button class="btn ghost" id="impbtn" type="button">Impor</button></details>
-  <div class="tabel"><table><thead><tr><th>Tamu</th><th>Meja</th><th>Acara</th><th>Status</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
-  <p><button class="btn ghost" id="csv" type="button">Ekspor CSV</button></p>
-  <h3>Denah meja</h3><div id="meja" class="stat"></div>
-</section>
+<div class="sapa" id="sapa" hidden role="alertdialog" aria-live="assertive" aria-label="Sambutan tamu"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
-<section id="p-cek" class="pane" hidden>
-  <p id="cekinfo">Arahkan kamera ke kode QR pada tiket tamu.</p>
-  <video id="cam" playsinline muted></video>
-  <p><button class="btn" id="mulai" type="button">Mulai pindai</button> <button class="btn ghost" id="henti" type="button">Berhenti</button></p>
-  <form id="fm" class="baris"><input id="manual" placeholder="Atau ketik nama tamu"><button class="btn ghost">Check-in manual</button></form>
-</section>
-
-<section id="p-plan" class="pane" hidden>
-  <label>Total anggaran (Rp) <input id="total" inputmode="numeric"></label>
-  <div class="stat" id="bstat"></div>
-  <form id="fb" class="baris"><input name="n" placeholder="Pos pengeluaran" required><input name="j" placeholder="Jumlah (Rp)" inputmode="numeric" required><button class="btn">Tambah</button></form>
-  <ul id="blist" class="daftar"></ul>
-  <h3>Checklist persiapan</h3>
-  <form id="ft" class="baris"><input name="t" placeholder="Tugas baru" required><button class="btn">Tambah</button></form>
-  <ul id="tlist" class="daftar"></ul>
-</section>
-</main>
-<div class="sapa" id="sapa" hidden></div>
+<script src="data.js"></script>
+<script src="penyimpanan.js"></script>
+<script src="smart.js"></script>
 <script src="dashboard.js"></script>
-</body></html>
+</body>
+</html>
