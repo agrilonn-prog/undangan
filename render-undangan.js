@@ -41,6 +41,10 @@ const profil = (d.ortupria || d.ortuwanita) ? `<section class="blok" id="mempela
 const kisah = cerita.length ? `<section class="blok" id="cerita"><h3 class="r">Kisah kami</h3><ol class="alur">${cerita.map(([y,j,t='']) => `<li class="r"><b>${esc(y)}</b><h4>${esc(j)}</h4><p>${esc(t)}</p></li>`).join('')}</ol></section>` : '';
 const akad = d.acara !== 'resepsi' ? `<article class="glass"><h4>Akad / pemberkatan</h4><div class="jam">${fmtT(when)}</div><small>${fmtD(when)}</small></article>` : '';
 const resepsi = d.acara !== 'akad' ? `<article class="glass"><h4>Resepsi</h4><div class="jam">${fmtT(res)}</div><small>${fmtD(res)}</small></article>` : '';
+const rundown = (d.rundown || '').split(';').map(x => x.split('|').map(y => y.trim())).filter(a => a[0] && a[1]);
+const rundownHtml = rundown.length ? `<ol class="rundown r">${rundown.map(([j,a]) => `<li class="glass"><b>${esc(j)}</b><span>${esc(a)}</span></li>`).join('')}</ol>` : '';
+const warna3 = (d.busana || '').match(/#[0-9a-f]{6}/gi) || [];
+const busanaHtml = d.busana ? `<p class="busana r">👗 Busana: ${esc(d.busana.replace(/#[0-9a-f]{6}/gi, '').replace(/\s+/g, ' ').trim())} ${warna3.map(c => `<i style="background:${c}"></i>`).join('')}</p>` : '';
 const tiket = tamuKhusus ? `<section class="blok" id="tiket"><h3 class="r">Tiket masuk</h3><div class="rek glass r"><div id="qr" class="qr"></div><p><strong>${esc(d.to)}</strong>${d.meja ? ` · Meja ${esc(d.meja)}` : ''}</p><small>Tunjukkan kode ini kepada penerima tamu saat tiba.</small></div></section>` : '';
 const live = http(d.live) ? `<section class="blok" id="live"><h3 class="r">Siaran langsung</h3><p class="r">Tidak bisa hadir? Saksikan acara dari mana saja.</p><a class="btn r" href="${esc(d.live)}" target="_blank" rel="noopener">Tonton siaran langsung</a></section>` : '';
 const game = (T.id === 'pixel' || d.game) ? `<section class="blok" id="main"><h3 class="r">Mini game</h3><p class="r">Tangkap sebanyak mungkin hati dalam 20 detik. Geser keranjang dengan jari.</p><canvas id="gm" width="320" height="400"></canvas><p id="skor">Siap main?</p><button class="btn" id="gmulai">Main game</button></section>` : '';
@@ -56,8 +60,10 @@ $('#app').innerHTML = `
     <h1>${esc(d.pria)}<span>&amp;</span>${esc(d.wanita)}</h1>
     <div class="glass tamu"><small>Kepada Yth.</small><br><strong>${esc(d.to)}</strong></div>
     <button class="btn" id="buka">Buka undangan</button>
+    <p class="geser">${T.lambang}</p>
   </div>
 </section>
+<div id="prog" aria-hidden="true"></div><canvas id="fx" aria-hidden="true"></canvas><canvas id="cf" aria-hidden="true"></canvas><div id="lb" hidden role="dialog" aria-label="Pratinjau foto"><button class="x" aria-label="Tutup">✕</button><button class="p" aria-label="Sebelumnya">‹</button><img alt=""><button class="n" aria-label="Berikutnya">›</button><small></small></div>
 <button id="musik" aria-label="Putar atau jeda musik">♫</button><button id="bhs" aria-label="Ganti bahasa">EN</button>
 <nav class="nav glass" aria-label="Navigasi undangan">${menu.map(([i,e,l]) => `<a href="#${i}"><i>${e}</i>${l}</a>`).join('')}</nav>
 <main>
@@ -66,8 +72,8 @@ $('#app').innerHTML = `
     <div class="tgl r"><b>${String(when.getDate()).padStart(2,'0')}</b><span><small>${when.toLocaleDateString('id-ID',{weekday:'long'})}</small>${tgl(when)}</span></div>
     <p class="kal r">${kal(when)}</p>
     <div class="count r" id="count"></div>
-    <p id="status" class="kal"></p>
-    <button class="btn kecil" id="ics">Tambah ke kalender</button><button class="btn kecil" id="bagi">Bagikan</button><button class="btn kecil" id="gbr">Simpan gambar story</button>
+    <p id="status" class="kal"></p><p class="cdsub" id="cdsub" aria-live="polite"></p>
+    <button class="btn kecil" id="ics">Tambah ke kalender</button><a class="btn kecil" id="gcal" target="_blank" rel="noopener">Google Kalender</a><button class="btn kecil" id="bagi">Bagikan</button><button class="btn kecil" id="gbr">Simpan gambar story</button>
   </section>
   <div class="marquee" aria-hidden="true"><span>${loop}</span></div>
   <section class="blok"><blockquote class="r">${T.kutipan}${T.sumber ? `<cite>${T.sumber}</cite>` : ''}</blockquote></section>
@@ -78,6 +84,7 @@ $('#app').innerHTML = `
       <article class="glass lebar"><h4>Lokasi</h4><strong>${esc(d.tempat)}</strong><small>${esc(d.alamat)}</small>
         ${http(d.maps) ? `<a class="btn kecil" href="${esc(d.maps)}" target="_blank" rel="noopener">Buka peta</a>` : ''}</article>
     </div>
+    ${rundownHtml}${busanaHtml}
   </section>
   ${foto.length ? `<section class="blok" id="galeri"><h3 class="r">Galeri</h3><div class="gal r">${foto.map(f => `<img src="${esc(f)}" alt="Foto prewedding" loading="lazy">`).join('')}</div></section>` : ''}
   ${adaRek ? `<section class="blok" id="hadiah"><h3 class="r">Amplop digital</h3><div class="rek glass r"><p>${esc(d.bank)} a.n. ${esc(d.an)}</p><b>${esc(d.norek)}</b><button class="btn kecil" id="salin">Salin nomor rekening</button></div></section>` : ''}
@@ -86,6 +93,7 @@ $('#app').innerHTML = `
     <form class="rsvp glass r" id="rsvp">
       <input name="nama" placeholder="Nama Anda" value="${d.to === DEFAULT_DATA.to ? '' : esc(d.to)}" required>
       <select name="hadir"><option>Hadir</option><option>Tidak hadir</option><option>Masih ragu</option></select>
+      <div class="langkah" id="jml-w"><label for="jml">Jumlah yang hadir</label><button type="button" id="kur" aria-label="Kurangi">−</button><output id="jml">1</output><button type="button" id="tam" aria-label="Tambah">+</button></div>
       <input type="hidden" name="stiker" id="stiker">
       <div class="stiker" id="stikers">${['💐','🤍','🎉','🤲','😍'].map(e => `<button type="button" data-e="${e}">${e}</button>`).join('')}</div>
       <div class="stiker" id="tmpl">${['Selamat menempuh hidup baru! Semoga bahagia selalu dan dilimpahi berkah.','Turut berbahagia untuk kalian berdua. Doa terbaik menyertai.','Maaf belum bisa hadir. Semoga acaranya lancar dan penuh kebahagiaan.'].map((t,i) => `<button type="button" class="chip-t" data-t="${esc(t)}">Contoh ${i+1}</button>`).join('')}</div>
@@ -107,20 +115,25 @@ if (aset(d.foto)) $('#cover').style.setProperty('--foto', `url("${encodeURI(d.fo
 
 // Musik latar
 let audio;
-if (aset(d.musik)) { audio = new Audio(d.musik); audio.loop = true; $('#musik').classList.add('ada'); }
-$('#musik').onclick = () => audio.paused ? audio.play() : audio.pause();
-$('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); audio && audio.play().catch(() => {}); if ($('#cat')) setTimeout(() => ($('#cat').hidden = false), 900); };
+const mus = () => { const m = $('#musik'), on = audio && !audio.paused; m.classList.toggle('main', on); m.classList.toggle('jeda', !on); };
+if (aset(d.musik)) { audio = new Audio(d.musik); audio.loop = true; audio.volume = .6; audio.onerror = () => { audio = null; $('#musik').classList.remove('ada'); }; ['play', 'pause'].forEach(v => audio.addEventListener(v, mus)); $('#musik').classList.add('ada'); }
+$('#musik').onclick = () => audio && (audio.paused ? audio.play().catch(() => {}) : audio.pause());
+document.addEventListener('visibilitychange', () => { if (audio && document.hidden && !audio.paused) { audio.pause(); audio._auto = 1; } else if (audio && audio._auto && !document.hidden) { audio._auto = 0; audio.play().catch(() => {}); } });
+$('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); audio && audio.play().catch(() => {}); confetti(); if ($('#cat')) setTimeout(() => ($('#cat').hidden = false), 900); };
 
 // Hitung mundur + status acara
 function tick() {
   let s = Math.max(0, Math.floor((abs - Date.now()) / 1000));
-  $('#count').innerHTML = [['hari',86400],['jam',3600],['menit',60],['detik',1]].map(([n,v]) => { const x = Math.floor(s / v); s %= v; return `<div class="glass"><b>${x}</b>${n}</div>`; }).join('');
-  const now = Date.now();
+  const sisaHari = Math.floor(s / 86400), prev = [...document.querySelectorAll('#count b')].map(b => b.textContent);
+  $('#count').innerHTML = [['hari',86400],['jam',3600],['menit',60],['detik',1]].map(([n,v], i) => { const x = Math.floor(s / v); s %= v; return `<div class="glass"><b${prev.length && prev[i] != x ? ' class="ganti"' : ''}>${x}</b>${n}</div>`; }).join('');
+  const now = Date.now(), msh = Math.ceil((abs - now) / 864e5);
+  $('#cdsub').textContent = now >= +abs ? '' : sisaHari === 0 && abs - now < 864e5 ? (new Date(abs).toDateString() === new Date().toDateString() ? 'Hari ini adalah harinya! 🎉' : 'Besok adalah harinya! 🎉') : msh === 1 ? 'Tinggal 1 hari lagi' : sisaHari < 31 ? `Tinggal ${msh} hari lagi` : '';
   $('#status').textContent = now > +absRes + 72e5 ? 'Acara telah selesai. Terima kasih atas doa Anda.' : now >= +abs ? 'Acara sedang berlangsung.' : '';
 }
 tick(); setInterval(tick, 1000);
 
-// Kalender (.ics)
+// Kalender (.ics) + tautan Google Kalender
+{ const z = x => x.toISOString().replace(/[-:]|\.\d{3}/g, ''); $('#gcal').href = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(`Pernikahan ${d.pria} & ${d.wanita}`) + '&dates=' + z(abs) + '/' + z(new Date(+absRes + 72e5)) + '&location=' + encodeURIComponent(`${d.tempat}, ${d.alamat}`) + '&details=' + encodeURIComponent(d.catatan || 'Mohon doa restu Anda.'); }
 $('#ics').onclick = () => {
   const z = x => x.toISOString().replace(/[-:]|\.\d{3}/g, ''), e = s => s.replace(/[,;]/g, '\\$&');
   const t = ['BEGIN:VCALENDAR','VERSION:2.0','BEGIN:VEVENT','DTSTART:'+z(abs),'DTEND:'+z(new Date(+absRes+72e5)),'SUMMARY:'+e(`Pernikahan ${d.pria} & ${d.wanita}`),'LOCATION:'+e(`${d.tempat}, ${d.alamat}`),'END:VEVENT','END:VCALENDAR'].join('\r\n');
@@ -131,15 +144,20 @@ if ($('#salin')) $('#salin').onclick = e => navigator.clipboard.writeText(d.nore
 
 // Ucapan (tersimpan di perangkat ini) + RSVP WhatsApp
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } };
-const show = () => ($('#ucapan-list').innerHTML = load().map(u => `<li class="glass"><b>${esc(u.n.charAt(0).toUpperCase())}</b><div><small>${esc(u.n)} · ${esc(u.h)}</small>${esc(u.t)}</div></li>`).join(''));
+const show = () => ($('#ucapan-list').hidden = false, $('#ucapan-list').innerHTML = load().map(u => `<li class="glass"><b>${esc(u.n.charAt(0).toUpperCase())}</b><div><small>${esc(u.n)} · ${esc(u.h)}</small>${esc(u.t)}</div></li>`).join(''));
 $('#rsvp').onsubmit = e => {
   e.preventDefault();
-  const f = new FormData(e.target), n = f.get('nama'), h = f.get('hadir'), t = ((f.get('stiker') || '') + ' ' + (f.get('doa') || '')).trim();
+  const f = new FormData(e.target), n = f.get('nama'), h = f.get('hadir'), t = ((f.get('stiker') || '') + ' ' + (f.get('doa') || '')).trim(), jm = h === 'Hadir' ? +$('#jml').textContent : 0;
   try { localStorage.setItem(KEY, JSON.stringify([{n,h,t}, ...load()].slice(0, 30))); } catch (x) {}
-  show(); e.target.reset();
-  if (/^\d{8,15}$/.test(d.wa)) window.open(`https://wa.me/${d.wa}?text=${encodeURIComponent(`Halo, saya ${n}. Konfirmasi: ${h}.\n${t}`)}`, '_blank');
+  show(); e.target.reset(); $('#jml').textContent = 1; if (h === 'Hadir') confetti();
+  const pesan = `Halo, saya ${n}. Konfirmasi: ${h}${jm ? ` (${jm} orang)` : ''}.${d.meja ? ` Meja ${d.meja}.` : ''}\n${t}`;
+  if (/^\d{8,15}$/.test(d.wa)) window.open(`https://wa.me/${d.wa}?text=${encodeURIComponent(pesan)}`, '_blank');
 };
 show();
+$('#kur').onclick = () => ($('#jml').textContent = Math.max(1, +$('#jml').textContent - 1));
+$('#tam').onclick = () => ($('#jml').textContent = Math.min(10, +$('#jml').textContent + 1));
+$('#rsvp').elements.hadir.onchange = e => ($('#jml-w').style.display = e.target.value === 'Hadir' ? '' : 'none');
+$('#ucapan-list').hidden = !load().length;
 
 // Warna & huruf kustom (warna dibuat terbaca otomatis)
 const HUR = {elegan:"'Cormorant Garamond',serif",klasik:"'Playfair Display',serif",modern:"'Poppins',sans-serif",tegas:"'Cinzel',serif",arab:"'Amiri',serif"};
@@ -176,7 +194,7 @@ $('#pb-ambil').onclick = () => {
 if ($('#cat')) $('#cat-ok').onclick = () => ($('#cat').hidden = true);
 
 // Dua bahasa (label antarmuka)
-const EN = {'Buka undangan':'Open invitation','Kepada Yth.':'Dear','Mempelai':'The Couple','Mempelai pria':'Groom','Mempelai wanita':'Bride','Kisah kami':'Our Story','Acara':'Events','Akad / pemberkatan':'Ceremony','Resepsi':'Reception','Lokasi':'Location','Buka peta':'Open map','Galeri':'Gallery','Amplop digital':'Digital Gift','Salin nomor rekening':'Copy account number','Tiket masuk':'Entry Ticket','Buka kamera':'Open camera','Ucapan & kehadiran':'Wishes & RSVP','Hadir':'Attending','Tidak hadir':'Not attending','Masih ragu':'Not sure','Kirim ucapan':'Send wishes','Kirim lewat WhatsApp':'Send via WhatsApp','hari':'days','jam':'hours','menit':'minutes','detik':'seconds','Tambah ke kalender':'Add to calendar','Bagikan':'Share','Simpan gambar story':'Save story image','Beranda':'Home','Kisah':'Story','Hadiah':'Gift','Tiket':'Ticket','Foto':'Photo','Ucapan':'Wishes','Siaran langsung':'Live stream','Tonton siaran langsung':'Watch live','Mini game':'Mini game','Main game':'Play','Mengerti':'Got it','Tutup':'Close','Ambil & simpan foto':'Capture & save','Berfoto langsung dari undangan, lalu simpan hasilnya.':'Take a photo right here and save it.','Merupakan kehormatan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.':'It would be an honor to have you celebrate with us.','Tunjukkan kode ini kepada penerima tamu saat tiba.':'Show this code to the host when you arrive.'};
+const EN = {'Buka undangan':'Open invitation','Google Kalender':'Google Calendar','Jumlah yang hadir':'Guests attending','Hari ini adalah harinya! 🎉':'Today is the day! 🎉','Besok adalah harinya! 🎉':'Tomorrow is the day! 🎉','Kepada Yth.':'Dear','Mempelai':'The Couple','Mempelai pria':'Groom','Mempelai wanita':'Bride','Kisah kami':'Our Story','Acara':'Events','Akad / pemberkatan':'Ceremony','Resepsi':'Reception','Lokasi':'Location','Buka peta':'Open map','Galeri':'Gallery','Amplop digital':'Digital Gift','Salin nomor rekening':'Copy account number','Tiket masuk':'Entry Ticket','Buka kamera':'Open camera','Ucapan & kehadiran':'Wishes & RSVP','Hadir':'Attending','Tidak hadir':'Not attending','Masih ragu':'Not sure','Kirim ucapan':'Send wishes','Kirim lewat WhatsApp':'Send via WhatsApp','hari':'days','jam':'hours','menit':'minutes','detik':'seconds','Tambah ke kalender':'Add to calendar','Bagikan':'Share','Simpan gambar story':'Save story image','Beranda':'Home','Kisah':'Story','Hadiah':'Gift','Tiket':'Ticket','Foto':'Photo','Ucapan':'Wishes','Siaran langsung':'Live stream','Tonton siaran langsung':'Watch live','Mini game':'Mini game','Main game':'Play','Mengerti':'Got it','Tutup':'Close','Ambil & simpan foto':'Capture & save','Berfoto langsung dari undangan, lalu simpan hasilnya.':'Take a photo right here and save it.','Merupakan kehormatan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.':'It would be an honor to have you celebrate with us.','Tunjukkan kode ini kepada penerima tamu saat tiba.':'Show this code to the host when you arrive.'};
 var en = d.bahasa === 'en'; const orig = new WeakMap();
 function tr(root) {
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
@@ -230,4 +248,71 @@ if ($('#gm')) {
     $('#skor').textContent = `Skor ${sk} · ${Math.ceil(sisa)} dtk`; requestAnimationFrame(loop);
   };
   $('#gmulai').onclick = () => { sk = 0; hs = []; t0 = 0; run = 1; $('#gmulai').disabled = true; requestAnimationFrame(loop); };
+}
+
+
+// ===== Peningkatan: judul, progres, lightbox, partikel, konfeti, efek miring =====
+document.title = `Undangan ${d.pria} & ${d.wanita}`;
+{ const m = document.querySelector('meta[name=theme-color]') || document.head.appendChild(Object.assign(document.createElement('meta'), {name:'theme-color'})); m.content = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#fff'; }
+
+// Bilah progres gulir
+addEventListener('scroll', () => { const h = document.documentElement; $('#prog').style.transform = `scaleX(${Math.min(1, scrollY / Math.max(1, h.scrollHeight - innerHeight))})`; }, {passive:true});
+
+// Galeri: lightbox dengan geser
+{
+  const lb = $('#lb'), im = lb.querySelector('img'), cap = lb.querySelector('small'); let i = 0, x0 = null;
+  const imgs = () => [...document.querySelectorAll('.gal img')];
+  const tampil = n => { const a = imgs(); if (!a.length) return; i = (n + a.length) % a.length; im.src = a[i].src; cap.textContent = `${i + 1} / ${a.length}`; lb.hidden = false; };
+  document.addEventListener('click', e => { const g = e.target.closest('.gal img'); if (g) tampil(imgs().indexOf(g)); });
+  lb.querySelector('.x').onclick = () => (lb.hidden = true);
+  lb.querySelector('.p').onclick = () => tampil(i - 1); lb.querySelector('.n').onclick = () => tampil(i + 1);
+  lb.addEventListener('click', e => { if (e.target === lb) lb.hidden = true; });
+  lb.addEventListener('touchstart', e => (x0 = e.touches[0].clientX), {passive:true});
+  lb.addEventListener('touchend', e => { if (x0 != null) { const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) tampil(i + (dx < 0 ? 1 : -1)); x0 = null; } });
+  addEventListener('keydown', e => { if (lb.hidden) return; if (e.key === 'Escape') lb.hidden = true; if (e.key === 'ArrowRight') tampil(i + 1); if (e.key === 'ArrowLeft') tampil(i - 1); });
+}
+
+// Partikel latar sesuai tema (kelopak / debu emas); salju punya efek sendiri
+if (!hemat && T.id !== 'salju') {
+  const c = $('#fx'), x = c.getContext('2d'); let W, H;
+  const rs = () => { W = c.width = innerWidth; H = c.height = innerHeight; }; rs(); addEventListener('resize', rs);
+  const naik = ['sinematik', 'pixel'].includes(T.id), n = innerWidth < 500 ? 16 : 28;
+  const mk = (a) => ({x:Math.random() * W, y:a ? Math.random() * H : (naik ? H + 10 : -20), s:Math.random() * 7 + 4, v:Math.random() * .7 + .3, r:Math.random() * 6, vr:(Math.random() - .5) * .03, sw:Math.random() * 2 + .5, ph:Math.random() * 6});
+  const ps = Array.from({length:n}, () => mk(1));
+  (function f() {
+    if (!document.hidden) {
+      x.clearRect(0, 0, W, H); x.fillStyle = getComputedStyle(document.body).getPropertyValue('--ac').trim() || '#c8a24a';
+      ps.forEach((o, k) => {
+        o.y += naik ? -o.v * .7 : o.v; o.ph += .015; o.x += Math.sin(o.ph) * o.sw * .4; o.r += o.vr;
+        if (o.y > H + 20 || o.y < -20) ps[k] = mk(0);
+        x.globalAlpha = naik ? .35 : .28; x.save(); x.translate(o.x, o.y);
+        if (naik) { x.beginPath(); x.arc(0, 0, o.s / 4, 0, 7); x.fill(); }
+        else { x.rotate(o.r); x.beginPath(); x.ellipse(0, 0, o.s, o.s / 2.2, 0, 0, 7); x.fill(); }
+        x.restore();
+      });
+      x.globalAlpha = 1;
+    }
+    requestAnimationFrame(f);
+  })();
+}
+
+// Konfeti
+function confetti() {
+  if (hemat) return;
+  const c = $('#cf'), x = c.getContext('2d'), W = c.width = innerWidth, H = c.height = innerHeight, cs = getComputedStyle(document.body);
+  const cols = [cs.getPropertyValue('--ac').trim() || '#c8a24a', '#fff', cs.getPropertyValue('--fg').trim() || '#333', '#f4c7d0'];
+  const ps = Array.from({length:110}, () => { const a = Math.random() * Math.PI - Math.PI, v = Math.random() * 14 + 6; return {x:W / 2, y:H * .62, vx:Math.cos(a) * v, vy:Math.sin(a) * v - 4, w:Math.random() * 8 + 4, h:Math.random() * 5 + 3, r:Math.random() * 6, vr:(Math.random() - .5) * .4, c:cols[Math.random() * cols.length | 0]}; });
+  let f = 0;
+  (function t() {
+    x.clearRect(0, 0, W, H);
+    ps.forEach(o => { o.vy += .32; o.vx *= .985; o.x += o.vx; o.y += o.vy; o.r += o.vr; x.save(); x.translate(o.x, o.y); x.rotate(o.r); x.fillStyle = o.c; x.globalAlpha = Math.max(0, 1 - f / 130); x.fillRect(-o.w / 2, -o.h / 2, o.w, o.h); x.restore(); });
+    if (++f < 130) requestAnimationFrame(t); else x.clearRect(0, 0, W, H);
+  })();
+}
+
+// Sampul: miring mengikuti jari / kursor
+{
+  const cv = $('#cover'), ia = cv.querySelector(':scope > div:not(.blob)');
+  const gerak = (px, py) => { const rx = (px / innerWidth - .5), ry = (py / innerHeight - .5); ia.style.transform = `translate(${rx * -14}px,${ry * -14}px)`; cv.style.setProperty('--gx', rx * 30 + 'px'); };
+  if (!hemat) { cv.addEventListener('pointermove', e => gerak(e.clientX, e.clientY)); addEventListener('deviceorientation', e => { if (e.gamma != null && !cv.classList.contains('tutup')) gerak(innerWidth / 2 + e.gamma * 6, innerHeight / 2 + (e.beta - 45) * 4); }); }
 }

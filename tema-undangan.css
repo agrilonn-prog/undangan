@@ -44,7 +44,7 @@ p{margin:.4em 0}
 .blob{position:absolute;width:70vmax;height:70vmax;border-radius:50%;background:var(--ac);filter:blur(90px);opacity:.3;left:-25vmax;top:-25vmax;animation:gerak 14s ease-in-out infinite alternate}
 .blob.b2{left:auto;top:auto;right:-30vmax;bottom:-30vmax;opacity:.2;animation-delay:-7s}
 @keyframes gerak{to{transform:translate(8vmax,6vmax) scale(1.15)}}
-.cover>div{position:relative;z-index:1;display:grid;justify-items:center;gap:.4rem}
+.cover>div:not(.blob){position:relative;z-index:1;display:grid;justify-items:center;gap:.4rem}
 .cover h1{font-size:clamp(3.4rem,17vw,7rem);line-height:.88;margin:.15em 0}
 .cover h1 span{display:block;font-size:.38em;margin:.1em 0}
 .tamu{padding:.9rem 1.8rem;margin:1.2rem 0 .6rem}
@@ -118,3 +118,49 @@ footer.blok p{max-width:34ch;margin:0 auto 1rem}
 #bhs{position:fixed;right:68px;top:14px;z-index:15;height:44px;padding:0 14px;border-radius:99px;border:0;background:var(--ac);color:var(--bt);font:700 .8rem var(--bf);cursor:pointer;display:none}
 .terbuka #bhs{display:block}
 #auto{position:fixed;left:14px;top:14px;z-index:15;display:none}.terbuka #auto{display:block}
+
+
+/* ===== Peningkatan: progres gulir, partikel, lightbox, rundown, konfeti ===== */
+#prog{position:fixed;left:0;top:0;height:3px;width:100%;z-index:30;transform-origin:0 50%;transform:scaleX(0);background:linear-gradient(90deg,var(--ac),color-mix(in srgb,var(--ac) 40%,#fff));pointer-events:none}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:11}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:60}
+.cover>div:not(.blob){transition:transform .25s ease-out;will-change:transform}
+.cover::after{transition:transform .25s ease-out}
+.cover h1{background:linear-gradient(110deg,var(--fg) 30%,var(--ac) 50%,var(--fg) 70%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:kilau 6s ease-in-out infinite}
+.cover h1 span{-webkit-text-fill-color:var(--ac)}
+@keyframes kilau{0%,100%{background-position:100% 0}50%{background-position:0 0}}
+.cover .geser{font:600 .75rem var(--bf);letter-spacing:.2em;text-transform:uppercase;opacity:.7;margin-top:.8rem}
+#musik.main{animation:putar 4s linear infinite}
+@keyframes putar{to{transform:rotate(360deg)}}
+#musik.jeda::after{content:'';position:absolute;left:8px;right:8px;top:50%;height:2px;background:var(--bt);transform:rotate(-40deg)}
+#musik{overflow:visible}
+.cdsub{font-size:.85rem;font-weight:700;color:var(--ac);letter-spacing:.04em}
+.count b{display:inline-block;min-width:2ch;font-variant-numeric:tabular-nums}
+.count b.ganti{animation:balik .45s}
+@keyframes balik{0%{transform:translateY(-35%);opacity:.2}100%{transform:none;opacity:1}}
+.rundown{list-style:none;margin:1.4rem 0 0;padding:0;display:grid;gap:.6rem;text-align:left}
+.rundown li{display:grid;grid-template-columns:5.2rem 1fr;gap:.9rem;align-items:center;padding:.8rem 1rem}
+.rundown b{font:800 1.25rem var(--hf);color:var(--ac)}
+.busana{margin-top:.8rem;font-size:.9rem}
+.busana i{font-style:normal;display:inline-block;width:1.1rem;height:1.1rem;border-radius:50%;vertical-align:-.2em;margin:0 .15rem;border:1px solid color-mix(in srgb,var(--fg) 30%,transparent)}
+.gal img{cursor:zoom-in;transition:transform .5s,filter .5s}
+.gal img:hover{transform:scale(1.02)}
+#lb{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.93);display:grid;place-items:center;touch-action:pan-y}
+#lb[hidden]{display:none}
+#lb img{max-width:94vw;max-height:84vh;border-radius:var(--rr);box-shadow:0 20px 80px #000;animation:muncul .35s}
+@keyframes muncul{from{opacity:0;transform:scale(.94)}}
+#lb button{position:absolute;border:0;background:rgba(255,255,255,.14);color:#fff;width:46px;height:46px;border-radius:50%;font-size:1.3rem;cursor:pointer}
+#lb .x{right:14px;top:14px}#lb .p{left:10px;top:50%}#lb .n{right:10px;top:50%}
+#lb small{position:absolute;bottom:18px;color:#fff;opacity:.7}
+.langkah{display:flex;align-items:center;gap:.8rem}
+.langkah label{flex:1;font-weight:600;font-size:.9rem}
+.langkah button{width:40px;height:40px;border-radius:50%;border:1px solid color-mix(in srgb,var(--ac) 55%,transparent);background:transparent;color:var(--fg);font-size:1.2rem;cursor:pointer}
+.langkah output{min-width:2ch;text-align:center;font:800 1.3rem var(--hf)}
+.kosong{opacity:.7;font-size:.9rem;text-align:center}
+.glass.r:hover,.bento article:hover{box-shadow:0 14px 40px color-mix(in srgb,var(--ac) 22%,transparent)}
+.bento article{transition:box-shadow .3s,transform .3s}
+.bento article:hover{transform:translateY(-3px)}
+.nav{scrollbar-width:none}.nav::-webkit-scrollbar{display:none}
+@media (prefers-reduced-motion:reduce){.cover h1{animation:none;-webkit-text-fill-color:currentColor;background:none}.cover h1 span{-webkit-text-fill-color:var(--ac)}}
+
+.ucapan[hidden]{display:none}

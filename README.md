@@ -24,3 +24,10 @@ Buka `index.html`, atau unggah semua file ke GitHub Pages / hosting statis apa p
 - Foto dan musik boleh berkas lokal (`foto/…`, `musik/…`) atau tautan `https://`.
 - Dashboard: tab Data > "Muat contoh", atau buka `dashboard.html?contoh=persiapan` / `?contoh=harih`.
 - Nomor WhatsApp pada data contoh adalah rekaan.
+
+## Pembaruan terbaru
+- Perbaikan: sampul undangan tidak lagi mendorong teks keluar layar (bug blob CSS).
+- Folder `foto/` dan `musik/` kini disertakan (ilustrasi dan musik orisinal buatan sendiri).
+- Baru di undangan: bilah progres, kelopak/debu partikel sesuai tema, konfeti saat dibuka dan saat RSVP "Hadir", efek miring pada sampul, galeri lightbox (geser/panah/Esc), hitung mundur dengan angka bergulir dan pesan "Besok adalah harinya", tautan Google Kalender, jumlah tamu pada RSVP, rundown acara dan kode busana (kolom baru di editor), tombol musik yang menjeda otomatis saat tab disembunyikan.
+- Kolom baru di editor: `rundown` (`09.00|Akad;11.30|Resepsi`) dan `busana` (teks + kode warna #hex).
+- `undangan.js`/`undangan.css` lama (tidak terpakai) dihapus.
