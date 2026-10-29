@@ -28,6 +28,8 @@
   const BASE = new URL('undangan.html', location.href);
   function tautan(g) {
     const u = new URL(BASE);
+    const ak = window.BISNIS && BISNIS.aktif && Simpan.state.pesanan; // mode bisnis: tautan tamu memakai kode pesanan
+    if (ak) { u.searchParams.set('id', ak.id); u.searchParams.set('to', Cerdas.parseNama(g.nama).tampil); if (g.meja) u.searchParams.set('meja', g.meja); if (g.acara) u.searchParams.set('acara', g.acara); return u.href; }
     Object.entries(D()).forEach(([k, v]) => { v = String(v == null ? '' : v).trim(); if (k !== 'to' && v !== String(DEFAULT_DATA[k] == null ? '' : DEFAULT_DATA[k])) u.searchParams.set(k, v); });
     u.searchParams.set('to', Cerdas.parseNama(g.nama).tampil);
     if (g.meja) u.searchParams.set('meja', g.meja);

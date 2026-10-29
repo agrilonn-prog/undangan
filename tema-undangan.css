@@ -175,3 +175,9 @@ footer.blok p{max-width:34ch;margin:0 auto 1rem}
 .med audio,.med video,.med iframe{width:100%;display:block;border:0;border-radius:var(--rr,14px);background:#000}
 .med audio{background:transparent}
 .med video{max-height:70vh}
+
+/* Watermark mode bisnis */
+#wm{position:fixed;inset:0;z-index:9999;pointer-events:none;background-repeat:repeat}
+#wm.pr{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='170'%3E%3Ctext x='130' y='95' text-anchor='middle' transform='rotate(-25 130 85)' font-family='sans-serif' font-size='28' font-weight='700' fill='%23000' fill-opacity='.17'%3EPRATINJAU%3C/text%3E%3C/svg%3E")}
+#wm.bl{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='170'%3E%3Ctext x='130' y='95' text-anchor='middle' transform='rotate(-25 130 85)' font-family='sans-serif' font-size='28' font-weight='700' fill='%23000' fill-opacity='.17'%3EBELUM AKTIF%3C/text%3E%3C/svg%3E")}
+.wm-bar{position:fixed;top:0;left:0;right:0;padding:calc(.45rem + env(safe-area-inset-top,0px)) .8rem .45rem;text-align:center;background:rgba(0,0,0,.78);color:#fff;font:600 .78rem sans-serif}

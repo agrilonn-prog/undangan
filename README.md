@@ -64,3 +64,25 @@ function doGet(e){var s=SpreadsheetApp.getActiveSpreadsheet().getSheetByName('uc
 - Browser melarang suara otomatis sebelum ada ketukan, jadi pemutaran dimulai saat tamu menekan Buka undangan (bukan saat halaman baru dimuat).
 
 - **Bisa dimatikan**: kolom editor *Putar musik otomatis saat undangan dibuka* (`autoplay=0` pada tautan) menonaktifkan pemutaran otomatis, baik mp3 maupun YouTube. Tamu juga selalu bisa menjeda lewat tombol ♫.
+
+## Mode bisnis: pelanggan pilih template, isi sendiri, bayar
+Alur: pelanggan memilih template di `index.html`, mengisi data, lalu menekan **Pesan & bayar**. Pratinjau memakai watermark. Setelah Anda mengubah status pesanan menjadi **lunas** di Google Sheet, undangan `undangan.html?id=KODE` tampil bersih dan siap dibagikan.
+
+**Pasang (sekali saja)**
+1. Google Sheet > Ekstensi > Apps Script: ganti seluruh isinya dengan isi `apps-script.gs`, simpan.
+2. Terapkan > Kelola deployment > ikon pensil > Versi baru > Terapkan. (Jika belum pernah deploy: Deployment baru > Aplikasi web, akses "Siapa saja".) Salin URL `.../exec`.
+3. Edit `bisnis.js`: `aktif: true`, isi `api` dengan URL tadi, lalu `nama`, `wa`, `paket` (harga dan isi paket), serta `bayar` (rekening, gambar QRIS opsional di folder `foto/`).
+4. Unggah semua file ke GitHub.
+
+**Setiap ada pesanan**
+- Tab `pesanan` di Sheet berisi id, waktu, status, paket, kontak pelanggan, dan data undangan.
+- Pelanggan membayar (QRIS/transfer) dan menekan tombol konfirmasi WhatsApp. Setelah uang masuk, ubah kolom `status` dari `menunggu` ke `lunas` (ada menu pilihan di sel).
+- Halaman pelanggan memeriksa status tiap 20 detik; undangan otomatis aktif tanpa watermark.
+
+**Catatan**
+- `tanpa` pada tiap paket menonaktifkan fitur (`musik`, `media`, `sheet` untuk dinding ucapan, `galeri`, `live`, dan lainnya) pada paket itu.
+- Pelanggan bisa memperbaiki data lewat tombol **Simpan perubahan ke pesanan** dari browser yang sama saat memesan. Untuk bantuan dari perangkat lain, ubah kolom `data` di Sheet atau minta pelanggan memesan ulang.
+- Tautan tamu (tautan massal dan dashboard) otomatis memakai kode pesanan: `?id=KODE&to=Nama`.
+- Pengamanan ini menahan penggunaan biasa, tetapi orang yang paham kode sumber halaman bisa saja menghapus watermark di browsernya sendiri. Untuk kunci yang benar-benar ketat, undangan perlu dirender di server (misalnya Cloudflare Workers atau Vercel).
+- Kode pesanan tersimpan dalam Sheet Anda; jaga akses Sheet dan jangan membagikannya.
+- Harga dan paket di `bisnis.js` hanya contoh. Tetapkan sendiri sesuai bisnis Anda.

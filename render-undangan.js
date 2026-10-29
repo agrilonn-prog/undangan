@@ -1,7 +1,18 @@
 const q = Object.fromEntries(new URLSearchParams(location.search));
-const d = { ...DEFAULT_DATA, ...q };
+// Mode bisnis: data dari pesanan (Google Sheet); batasan paket; watermark sampai status "lunas"
+const B = window.BISNIS || {}, P = window.PESANAN;
+const d = { ...DEFAULT_DATA, ...(P && P.ok ? P.data : {}), ...q };
+let tanpaDinding = false;
+if (B.aktif && P && P.ok) { const pk = (B.paket || []).find(x => x.id === P.paket); ((pk && pk.tanpa) || []).forEach(k => { d[k] = ''; if (k === 'sheet') tanpaDinding = true; }); }
+const kunci = !B.aktif ? '' : (q.id ? (P && P.ok && P.status === 'lunas' ? '' : 'bl') : 'pr');
+const sheetUrl = tanpaDinding ? '' : (d.sheet || (B.aktif && P && P.ok && P.status === 'lunas' ? B.api : ''));
 const T = TEMPLATES.find(t => t.id === d.t) || TEMPLATES[0];
 document.body.className = 't-' + T.id;
+if (kunci) {
+  const w = document.createElement('div'); w.id = 'wm'; w.className = kunci;
+  w.innerHTML = '<div class="wm-bar">' + (kunci === 'bl' ? 'Undangan belum aktif · menunggu pembayaran' : 'Pratinjau · undangan belum dipesan') + '</div>';
+  document.body.append(w);
+}
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const http = s => /^https?:\/\//.test(s);
@@ -57,7 +68,7 @@ function kal(x) {
 const jam = new Date().getHours();
 const sapa = jam < 11 ? 'Selamat pagi' : jam < 15 ? 'Selamat siang' : jam < 18 ? 'Selamat sore' : 'Selamat malam';
 const nama = `${esc(d.pria)} <span>&amp;</span> ${esc(d.wanita)}`;
-const KEY = 'ucapan:' + d.pria + d.wanita + d.tanggal;
+const KEY = 'ucapan:' + (q.id || d.pria + d.wanita + d.tanggal);
 
 const tgl = x => x.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
 const foto = d.galeri ? d.galeri.split(',').map(s => s.trim()).filter(aset) : [];
@@ -226,7 +237,7 @@ if ($('#salin')) $('#salin').onclick = e => navigator.clipboard.writeText(d.nore
 
 // Ucapan: dikirim lewat WhatsApp (ke mempelai) + tampil di dinding web.
 // Tanpa `sheet`, dinding hanya di perangkat tamu; dengan `sheet` (Google Apps Script), dinding dibagi ke semua tamu.
-const api = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(d.sheet || '') ? d.sheet : '';
+const api = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(sheetUrl) ? sheetUrl : '';
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } };
 const kartu = u => `<li class="glass"><b>${esc(String(u.n || '?').charAt(0).toUpperCase())}</b><div><small>${esc(u.n)} · ${esc(u.h)}</small>${esc(u.t)}</div></li>`;
 const tampil = arr => { const ul = $('#ucapan-list'); ul.hidden = !arr.length; ul.innerHTML = arr.map(kartu).join(''); };

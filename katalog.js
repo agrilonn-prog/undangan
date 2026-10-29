@@ -18,6 +18,12 @@
   // Kolom yang dikosongkan sengaja dikirim sebagai nilai kosong bila bawaannya terisi (mis. rekening contoh),
   // supaya data contoh tidak bocor ke tamu. Pengecualian: nama tamu (to) dibiarkan memakai sapaan umum.
   function tautan(d, tambahan = {}) {
+    const ak = window.BISNIS && BISNIS.aktif && Simpan.state.pesanan; // mode bisnis: tautan tamu memakai kode pesanan
+    if (ak && 'to' in tambahan) {
+      const w = new URL(BASE); w.searchParams.set('id', ak.id);
+      ['to', 'meja', 'acara'].forEach(k => { const v = String(tambahan[k] || '').trim(); if (v) w.searchParams.set(k, v); });
+      return w.href;
+    }
     const u = new URL(BASE), semua = {...d, ...tambahan};
     Object.entries(semua).forEach(([k, v]) => {
       v = String(v == null ? '' : v).trim();
@@ -155,6 +161,62 @@
     Simpan.save();
     toast(`${baru} tamu masuk ke dashboard${lewat ? `, ${lewat} dilewati karena sudah ada` : ''}`);
   };
+
+  /* ----- Mode bisnis: pesan & bayar (aktif jika BISNIS.aktif di bisnis.js) ----- */
+  const B = window.BISNIS || {};
+  if (B.aktif && B.api) {
+    $('#pesan').hidden = false; $('#copy').textContent = 'Salin tautan pratinjau';
+    const rp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+    const pk = $('#paket');
+    pk.innerHTML = (B.paket || []).map(p => `<option value="${esc(p.id)}">${esc(p.nama)} — ${rp(p.harga)}${p.fitur ? ' · ' + esc(p.fitur) : ''}</option>`).join('');
+    const acak = n => { const h = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; return [...crypto.getRandomValues(new Uint8Array(n))].map(x => h[x % h.length]).join(''); };
+    const dataPesan = () => { const {to, meja, acara, ...sisa} = baca(); return sisa; };
+    const ak = () => Simpan.state.pesanan;
+    let status = '', cek;
+    const kirim = async (body, verifikasi) => {
+      try { return await (await fetch(B.api, {method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(body)})).json(); }
+      catch (e) {
+        if (!verifikasi) return {ok: false};
+        await new Promise(r => setTimeout(r, 1200)); // respons mungkin terblokir; cek apakah pesanan tetap masuk
+        try { const j = await (await fetch(B.api + '?pesanan=' + encodeURIComponent(body.id))).json(); return {ok: !!j.ok}; } catch (x) { return {ok: false}; }
+      }
+    };
+    function tampilPesanan() {
+      const a = ak(), box = $('#pesanhasil');
+      $('#pesanbtn').textContent = a ? 'Simpan perubahan ke pesanan' : 'Pesan & bayar';
+      if (!a) { box.innerHTML = ''; return; }
+      const p = (B.paket || []).find(x => x.id === a.paket) || {}, lunas = status === 'lunas', by = B.bayar || {};
+      const akhir = new URL(BASE); akhir.searchParams.set('id', a.id);
+      const wa = `Halo ${B.nama || ''}, saya sudah membayar pesanan ${a.id} (${p.nama || a.paket}, ${rp(p.harga)}). Mohon diaktifkan.`;
+      box.innerHTML = `<p><b>Pesanan ${esc(a.id)}</b> · ${esc(p.nama || a.paket)} · ${rp(p.harga)}</p>
+        <p class="status ${lunas ? 'lunas' : ''}">${lunas ? '✅ Lunas. Undangan aktif dan siap dibagikan.' : '⏳ Menunggu pembayaran. Undangan aktif setelah pembayaran dikonfirmasi.'}</p>
+        ${lunas ? '' : `<div class="bayar"><p>${esc(by.rekening || '')}</p>${by.qris ? `<img src="${esc(by.qris)}" alt="QRIS pembayaran">` : ''}<p>${esc(by.catatan || 'Cantumkan kode pesanan saat membayar.')}</p><a class="btn" target="_blank" rel="noopener" href="https://wa.me/${esc(B.wa || '')}?text=${encodeURIComponent(wa)}">Konfirmasi lewat WhatsApp</a></div>`}
+        <div class="out"><input readonly value="${esc(akhir.href)}" aria-label="Tautan undangan final"><button type="button" class="btn" id="salinfinal">Salin tautan undangan</button><a class="btn ghost" target="_blank" rel="noopener" href="${esc(akhir.href)}">Buka</a></div>`;
+    }
+    async function periksa() {
+      const a = ak(); if (!a) return;
+      try { const j = await (await fetch(B.api + '?pesanan=' + encodeURIComponent(a.id))).json(); if (j.ok && j.status !== status) { status = j.status; tampilPesanan(); } } catch (e) {}
+      if (status === 'lunas') clearInterval(cek);
+    }
+    const mulaiCek = () => { clearInterval(cek); periksa(); cek = setInterval(periksa, 20000); };
+    $('#pesanbtn').onclick = async () => {
+      const btn = $('#pesanbtn'), a = ak(), d = dataPesan();
+      if (!d.pria || !d.wanita) return toast('Isi nama kedua mempelai dulu');
+      btn.disabled = true;
+      if (a) { const r = await kirim({aksi: 'ubah', id: a.id, tk: a.tk, data: d}, false); btn.disabled = false; return toast(r.ok ? 'Perubahan tersimpan di pesanan' : 'Gagal menyimpan. Coba lagi'); }
+      const kontak = Cerdas.waNorm($('#kontak').value);
+      if (!kontak.valid) { btn.disabled = false; return toast('Isi nomor WhatsApp Anda yang valid'); }
+      const id = acak(6), tk = acak(16), paket = pk.value;
+      const r = await kirim({aksi: 'pesan', id, tk, paket, kontak: kontak.wa, data: d}, true);
+      btn.disabled = false;
+      if (!r.ok) return toast('Pesanan gagal dibuat. Periksa koneksi lalu coba lagi');
+      Simpan.reload(); Simpan.state.pesanan = {id, tk, paket}; Simpan.save();
+      status = 'menunggu'; tampilPesanan(); mulaiCek();
+      toast('Pesanan dibuat. Silakan lakukan pembayaran');
+    };
+    $('#pesanhasil').onclick = async e => { if (e.target.id === 'salinfinal') toast(await salin(e.target.previousElementSibling.value) ? 'Tautan undangan tersalin' : 'Gagal menyalin'); };
+    if (ak()) { tampilPesanan(); mulaiCek(); }
+  }
 
   gambar(); segarkan(true);
 })();

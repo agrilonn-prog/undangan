@@ -87,6 +87,14 @@
         <a class="btn ghost" id="open" target="_blank" rel="noopener">Buka</a>
       </div>
     </form>
+    <div class="pesan" id="pesan" hidden>
+      <h3>Pesan &amp; bayar</h3>
+      <p>Selesai mengisi? Pilih paket, isi nomor WhatsApp Anda, lalu pesan. Setelah pembayaran dikonfirmasi, undangan Anda aktif tanpa watermark dan siap dibagikan.</p>
+      <label>Paket <select id="paket"></select></label>
+      <label>Nomor WhatsApp Anda <input id="kontak" inputmode="numeric" placeholder="08xxxxxxxxxx"></label>
+      <button type="button" class="btn" id="pesanbtn">Pesan &amp; bayar</button>
+      <div id="pesanhasil" aria-live="polite"></div>
+    </div>
     <div class="phone"><iframe id="live" title="Pratinjau undangan"></iframe></div>
   </section>
 <section class="bulk" aria-labelledby="h-bulk">
@@ -107,6 +115,7 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="data.js"></script>
+<script src="bisnis.js"></script>
 <script src="penyimpanan.js"></script>
 <script src="smart.js"></script>
 <script src="katalog.js"></script>
