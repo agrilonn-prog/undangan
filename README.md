@@ -31,3 +31,10 @@ Buka `index.html`, atau unggah semua file ke GitHub Pages / hosting statis apa p
 - Baru di undangan: bilah progres, kelopak/debu partikel sesuai tema, konfeti saat dibuka dan saat RSVP "Hadir", efek miring pada sampul, galeri lightbox (geser/panah/Esc), hitung mundur dengan angka bergulir dan pesan "Besok adalah harinya", tautan Google Kalender, jumlah tamu pada RSVP, rundown acara dan kode busana (kolom baru di editor), tombol musik yang menjeda otomatis saat tab disembunyikan.
 - Kolom baru di editor: `rundown` (`09.00|Akad;11.30|Resepsi`) dan `busana` (teks + kode warna #hex).
 - `undangan.js`/`undangan.css` lama (tidak terpakai) dihapus.
+
+## Multi musik & video (baru)
+- **Musik latar** (`musik`) kini boleh banyak, pisahkan koma: `musik/a.mp3, Judul|https://.../b.mp3`. Lagu diputar bergiliran lalu mengulang; ada tombol ⏮ ⏭ di pojok kanan atas.
+- **Video & suara tambahan** (`media`) tampil sebagai bagian "Video & Musik" (menu Video). Mendukung: berkas/tautan `.mp4 .webm`, `.mp3 .m4a .wav .ogg`, YouTube, SoundCloud, Spotify, Vimeo, dan Google Drive (`/file/d/ID/view`, harus dibagikan "siapa saja yang memiliki tautan").
+- Format tiap entri: `tautan` atau `Judul|tautan`, dipisah koma, titik koma, atau baris baru.
+- Multi play: saat satu video/mp3 diputar, yang lain berhenti dan musik latar dijeda, lalu lanjut sendiri setelah selesai. (Pemutar sematan YouTube/SoundCloud/Spotify tidak bisa dijeda otomatis oleh halaman.)
+- Tautan SoundCloud/YouTube di kolom Musik latar otomatis dipindah ke bagian media, karena bukan berkas audio langsung.

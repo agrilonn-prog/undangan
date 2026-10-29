@@ -164,3 +164,14 @@ footer.blok p{max-width:34ch;margin:0 auto 1rem}
 @media (prefers-reduced-motion:reduce){.cover h1{animation:none;-webkit-text-fill-color:currentColor;background:none}.cover h1 span{-webkit-text-fill-color:var(--ac)}}
 
 .ucapan[hidden]{display:none}
+
+/* Multi musik & media */
+.mn{position:fixed;top:14px;z-index:15;width:44px;height:44px;border-radius:50%;border:0;background:var(--ac);color:var(--bt);font-size:1rem;cursor:pointer;display:none}
+#mnext{right:122px}#mprev{right:172px}
+.terbuka .mn.ada{display:block}
+.med{max-width:560px;margin:1.2rem auto 0;display:grid;gap:1rem}
+.med .mi{text-align:left}
+.med h4{margin:0 0 .4rem;font-size:1rem}
+.med audio,.med video,.med iframe{width:100%;display:block;border:0;border-radius:var(--rr,14px);background:#000}
+.med audio{background:transparent}
+.med video{max-height:70vh}

@@ -7,6 +7,35 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 const http = s => /^https?:\/\//.test(s);
 // Foto & musik boleh berupa tautan https atau berkas lokal (foto/..., musik/..., ./...)
 const aset = s => /^(https?:\/\/|foto\/|musik\/|\.{1,2}\/)/.test(String(s).trim());
+// ===== Media: playlist musik latar + video/suara tertanam (multi tautan) =====
+const AUD = /\.(mp3|m4a|aac|wav|ogg|oga|opus|flac)(\?|#|$)/i, VID = /\.(mp4|m4v|webm|ogv|mov)(\?|#|$)/i;
+const rapih = s => { try { return encodeURI(decodeURI(s)); } catch (e) { return s; } };
+const lokal = u => !/^[a-z][a-z0-9+.-]*:/i.test(u) && !u.startsWith('//');
+// "Judul|tautan, Judul|tautan" (judul boleh dikosongkan); pemisah: koma, titik koma, baris baru
+const daftar = s => String(s || '').split(/[,;\n]/).map(x => x.trim()).filter(Boolean).map(x => {
+  const i = x.indexOf('|'); return i > 0 && !/^https?:/i.test(x.slice(0, i)) ? {j: x.slice(0, i).trim(), u: x.slice(i + 1).trim()} : {j: '', u: x};
+});
+function embed(u) {
+  let m;
+  if ((m = u.match(/^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i))) return {src: 'https://www.youtube.com/embed/' + m[1] + '?rel=0&playsinline=1', r: '16/9'};
+  if (/^https?:\/\/(?:www\.|m\.|on\.)?soundcloud\.com\//i.test(u)) return {src: 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(u) + '&auto_play=false&hide_related=true&show_comments=false&visual=false', h: 166};
+  if ((m = u.match(/^https?:\/\/open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|album|playlist|episode|show)\/(\w+)/i))) return {src: `https://open.spotify.com/embed/${m[1]}/${m[2]}`, h: /track|episode/.test(m[1]) ? 152 : 352};
+  if ((m = u.match(/^https?:\/\/(?:www\.)?vimeo\.com\/(\d+)/i))) return {src: 'https://player.vimeo.com/video/' + m[1], r: '16/9'};
+  if ((m = u.match(/^https?:\/\/drive\.google\.com\/file\/d\/([\w-]+)/i))) return {src: 'https://drive.google.com/file/d/' + m[1] + '/preview', r: '16/9'};
+  return null;
+}
+// k: a = audio, v = video, e = sematan (iframe), l = tautan biasa; musik = true memperlakukan tautan https tak dikenal sebagai audio
+function jenis(u, musik) {
+  if (!u || (!http(u) && !lokal(u))) return null;
+  if (AUD.test(u)) return {k: 'a', src: rapih(u)};
+  if (VID.test(u)) return {k: 'v', src: rapih(u)};
+  if (!http(u)) return null;
+  const e = embed(u); if (e) return {k: 'e', ...e};
+  return musik ? {k: 'a', src: u} : {k: 'l', src: u};
+}
+const lagu = [], medItems = [];
+daftar(d.musik).forEach(({j, u}) => { const x = jenis(u, true); if (!x) return; x.j = j; (x.k === 'a' ? lagu : medItems).push(x); });
+daftar(d.media).forEach(({j, u}) => { const x = jenis(u, false); if (x) { x.j = j; medItems.push(x); } });
 const when = new Date(d.tanggal), res = d.resepsi ? new Date(d.resepsi) : new Date(+when + 72e5);
 // Jam acara diketik sebagai waktu setempat (WIB/WITA/WIT); hitung mundur memakai waktu mutlak
 const ZON = {WIB:'+07:00', WITA:'+08:00', WIT:'+09:00'}, zona = ZON[d.zona] ? d.zona : 'WIB';
@@ -34,7 +63,7 @@ const adaRek = d.bank && d.norek;
 const loop = `${esc(d.pria)} &amp; ${esc(d.wanita)} ✦ ${when.getDate()}.${when.getMonth()+1}.${when.getFullYear()} ✦ `.repeat(6);
 const cerita = (d.cerita || '').split(';').map(x => x.split('|').map(y => y.trim())).filter(a => a[0] && a[1]);
 const tamuKhusus = d.to !== DEFAULT_DATA.to;
-const menu = [['home','🏠','Beranda'],...(cerita.length?[['cerita','💞','Kisah']]:[]),['acara','📅','Acara'],...(foto.length?[['galeri','🖼','Galeri']]:[]),...(adaRek?[['hadiah','🎁','Hadiah']]:[]),...(tamuKhusus?[['tiket','🎫','Tiket']]:[]),['foto','📸','Foto'],['ucapan','💬','Ucapan']];
+const menu = [['home','🏠','Beranda'],...(cerita.length?[['cerita','💞','Kisah']]:[]),['acara','📅','Acara'],...(foto.length?[['galeri','🖼','Galeri']]:[]),...(medItems.length?[['media','🎬','Video']]:[]),...(adaRek?[['hadiah','🎁','Hadiah']]:[]),...(tamuKhusus?[['tiket','🎫','Tiket']]:[]),['foto','📸','Foto'],['ucapan','💬','Ucapan']];
 const profil = (d.ortupria || d.ortuwanita) ? `<section class="blok" id="mempelai"><h3 class="r">Mempelai</h3><div class="bento r">
   <article class="glass"><h4>Mempelai pria</h4><div class="jam" style="font-size:1.9rem">${esc(d.pria)}</div><small>Putra dari ${esc(d.ortupria)}</small></article>
   <article class="glass"><h4>Mempelai wanita</h4><div class="jam" style="font-size:1.9rem">${esc(d.wanita)}</div><small>Putri dari ${esc(d.ortuwanita)}</small></article></div></section>` : '';
@@ -64,7 +93,7 @@ $('#app').innerHTML = `
   </div>
 </section>
 <div id="prog" aria-hidden="true"></div><canvas id="fx" aria-hidden="true"></canvas><canvas id="cf" aria-hidden="true"></canvas><div id="lb" hidden role="dialog" aria-label="Pratinjau foto"><button class="x" aria-label="Tutup">✕</button><button class="p" aria-label="Sebelumnya">‹</button><img alt=""><button class="n" aria-label="Berikutnya">›</button><small></small></div>
-<button id="musik" aria-label="Putar atau jeda musik">♫</button><button id="bhs" aria-label="Ganti bahasa">EN</button>
+<button id="musik" aria-label="Putar atau jeda musik">♫</button><button class="mn" id="mprev" aria-label="Lagu sebelumnya">⏮</button><button class="mn" id="mnext" aria-label="Lagu berikutnya">⏭</button><button id="bhs" aria-label="Ganti bahasa">EN</button>
 <nav class="nav glass" aria-label="Navigasi undangan">${menu.map(([i,e,l]) => `<a href="#${i}"><i>${e}</i>${l}</a>`).join('')}</nav>
 <main>
   <section class="blok" id="home">
@@ -86,6 +115,13 @@ $('#app').innerHTML = `
     </div>
     ${rundownHtml}${busanaHtml}
   </section>
+  ${medItems.length ? `<section class="blok" id="media"><h3 class="r">Video &amp; Musik</h3><div class="med r">${medItems.map((x, i) => {
+    const jd = x.j ? `<h4>${esc(x.j)}</h4>` : '';
+    if (x.k === 'a') return `<div class="mi">${jd}<audio controls preload="none" src="${esc(x.src)}"></audio></div>`;
+    if (x.k === 'v') return `<div class="mi">${jd}<video controls playsinline preload="metadata" src="${esc(x.src)}"></video></div>`;
+    if (x.k === 'e') return `<div class="mi">${jd}<iframe src="${esc(x.src)}" title="${esc(x.j || 'Media ' + (i + 1))}" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" style="${x.r ? 'aspect-ratio:' + x.r : 'height:' + x.h + 'px'}"></iframe></div>`;
+    return `<div class="mi">${jd}<a class="btn kecil" href="${esc(x.src)}" target="_blank" rel="noopener">Buka tautan</a></div>`;
+  }).join('')}</div></section>` : ''}
   ${foto.length ? `<section class="blok" id="galeri"><h3 class="r">Galeri</h3><div class="gal r">${foto.map(f => `<img src="${esc(f)}" alt="Foto prewedding" loading="lazy">`).join('')}</div></section>` : ''}
   ${adaRek ? `<section class="blok" id="hadiah"><h3 class="r">Amplop digital</h3><div class="rek glass r"><p>${esc(d.bank)} a.n. ${esc(d.an)}</p><b>${esc(d.norek)}</b><button class="btn kecil" id="salin">Salin nomor rekening</button></div></section>` : ''}
   ${live}${game}${tiket}${booth}${catatan}
@@ -113,13 +149,41 @@ document.querySelectorAll('main section[id]').forEach(el => nav.observe(el));
 
 if (aset(d.foto)) $('#cover').style.setProperty('--foto', `url("${encodeURI(d.foto)}")`);
 
-// Musik latar
-let audio;
+// Musik latar (playlist: lagu diputar bergiliran, lalu mengulang dari awal)
+let audio, idx = 0;
 const mus = () => { const m = $('#musik'), on = audio && !audio.paused; m.classList.toggle('main', on); m.classList.toggle('jeda', !on); };
-if (aset(d.musik)) { audio = new Audio(d.musik); audio.loop = true; audio.volume = .6; audio.onerror = () => { audio = null; $('#musik').classList.remove('ada'); }; ['play', 'pause'].forEach(v => audio.addEventListener(v, mus)); $('#musik').classList.add('ada'); }
+function muat(i, putar) {
+  if (!audio) return;
+  for (let n = 0; n < lagu.length; n++) {
+    const k = ((i + n) % lagu.length + lagu.length) % lagu.length;
+    if (!lagu[k].rusak) { idx = k; audio.src = lagu[k].src; audio.loop = lagu.filter(x => !x.rusak).length === 1; $('#musik').title = lagu[k].j || ('Lagu ' + (k + 1) + ' dari ' + lagu.length); if (putar) audio.play().catch(() => {}); return; }
+  }
+  audio = null; $('#musik').classList.remove('ada'); document.querySelectorAll('.mn').forEach(b => b.classList.remove('ada'));
+}
+if (lagu.length) {
+  audio = new Audio(); audio.volume = .6; audio.preload = 'auto';
+  audio.onerror = () => { const baru = !audio.paused || audio._mulai; lagu[idx].rusak = 1; muat(idx + 1, baru); };
+  audio.addEventListener('ended', () => muat(idx + 1, true));
+  ['play', 'pause'].forEach(v => audio.addEventListener(v, mus));
+  muat(0, false); $('#musik').classList.add('ada');
+  if (lagu.length > 1) document.querySelectorAll('.mn').forEach(b => b.classList.add('ada'));
+}
 $('#musik').onclick = () => audio && (audio.paused ? audio.play().catch(() => {}) : audio.pause());
+$('#mprev').onclick = () => muat(idx - 1, true);
+$('#mnext').onclick = () => muat(idx + 1, true);
 document.addEventListener('visibilitychange', () => { if (audio && document.hidden && !audio.paused) { audio.pause(); audio._auto = 1; } else if (audio && audio._auto && !document.hidden) { audio._auto = 0; audio.play().catch(() => {}); } });
-$('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); audio && audio.play().catch(() => {}); confetti(); if ($('#cat')) setTimeout(() => ($('#cat').hidden = false), 900); };
+// Multi play: satu pemutar aktif; musik latar berhenti saat video/suara di bagian media diputar, lalu lanjut setelahnya
+const medEls = () => [...document.querySelectorAll('.med audio, .med video')];
+document.addEventListener('play', e => {
+  const el = e.target; if (!el.closest || !el.closest('.med')) return;
+  medEls().forEach(x => x !== el && !x.paused && x.pause());
+  if (audio && !audio.paused) { audio.pause(); audio._med = 1; }
+}, true);
+['pause', 'ended'].forEach(v => document.addEventListener(v, e => {
+  if (!e.target.closest || !e.target.closest('.med')) return;
+  setTimeout(() => { if (audio && audio._med && !document.hidden && !medEls().some(x => !x.paused)) { audio._med = 0; audio.play().catch(() => {}); } }, 50);
+}, true));
+$('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); if (audio) { audio._mulai = 1; audio.play().catch(() => {}); } confetti(); if ($('#cat')) setTimeout(() => ($('#cat').hidden = false), 900); };
 
 // Hitung mundur + status acara
 function tick() {
@@ -194,7 +258,7 @@ $('#pb-ambil').onclick = () => {
 if ($('#cat')) $('#cat-ok').onclick = () => ($('#cat').hidden = true);
 
 // Dua bahasa (label antarmuka)
-const EN = {'Buka undangan':'Open invitation','Google Kalender':'Google Calendar','Jumlah yang hadir':'Guests attending','Hari ini adalah harinya! 🎉':'Today is the day! 🎉','Besok adalah harinya! 🎉':'Tomorrow is the day! 🎉','Kepada Yth.':'Dear','Mempelai':'The Couple','Mempelai pria':'Groom','Mempelai wanita':'Bride','Kisah kami':'Our Story','Acara':'Events','Akad / pemberkatan':'Ceremony','Resepsi':'Reception','Lokasi':'Location','Buka peta':'Open map','Galeri':'Gallery','Amplop digital':'Digital Gift','Salin nomor rekening':'Copy account number','Tiket masuk':'Entry Ticket','Buka kamera':'Open camera','Ucapan & kehadiran':'Wishes & RSVP','Hadir':'Attending','Tidak hadir':'Not attending','Masih ragu':'Not sure','Kirim ucapan':'Send wishes','Kirim lewat WhatsApp':'Send via WhatsApp','hari':'days','jam':'hours','menit':'minutes','detik':'seconds','Tambah ke kalender':'Add to calendar','Bagikan':'Share','Simpan gambar story':'Save story image','Beranda':'Home','Kisah':'Story','Hadiah':'Gift','Tiket':'Ticket','Foto':'Photo','Ucapan':'Wishes','Siaran langsung':'Live stream','Tonton siaran langsung':'Watch live','Mini game':'Mini game','Main game':'Play','Mengerti':'Got it','Tutup':'Close','Ambil & simpan foto':'Capture & save','Berfoto langsung dari undangan, lalu simpan hasilnya.':'Take a photo right here and save it.','Merupakan kehormatan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.':'It would be an honor to have you celebrate with us.','Tunjukkan kode ini kepada penerima tamu saat tiba.':'Show this code to the host when you arrive.'};
+const EN = {'Video & Musik':'Video & Music','Buka undangan':'Open invitation','Google Kalender':'Google Calendar','Jumlah yang hadir':'Guests attending','Hari ini adalah harinya! 🎉':'Today is the day! 🎉','Besok adalah harinya! 🎉':'Tomorrow is the day! 🎉','Kepada Yth.':'Dear','Mempelai':'The Couple','Mempelai pria':'Groom','Mempelai wanita':'Bride','Kisah kami':'Our Story','Acara':'Events','Akad / pemberkatan':'Ceremony','Resepsi':'Reception','Lokasi':'Location','Buka peta':'Open map','Galeri':'Gallery','Amplop digital':'Digital Gift','Salin nomor rekening':'Copy account number','Tiket masuk':'Entry Ticket','Buka kamera':'Open camera','Ucapan & kehadiran':'Wishes & RSVP','Hadir':'Attending','Tidak hadir':'Not attending','Masih ragu':'Not sure','Kirim ucapan':'Send wishes','Kirim lewat WhatsApp':'Send via WhatsApp','hari':'days','jam':'hours','menit':'minutes','detik':'seconds','Tambah ke kalender':'Add to calendar','Bagikan':'Share','Simpan gambar story':'Save story image','Beranda':'Home','Kisah':'Story','Hadiah':'Gift','Tiket':'Ticket','Foto':'Photo','Ucapan':'Wishes','Siaran langsung':'Live stream','Tonton siaran langsung':'Watch live','Mini game':'Mini game','Main game':'Play','Mengerti':'Got it','Tutup':'Close','Ambil & simpan foto':'Capture & save','Berfoto langsung dari undangan, lalu simpan hasilnya.':'Take a photo right here and save it.','Merupakan kehormatan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.':'It would be an honor to have you celebrate with us.','Tunjukkan kode ini kepada penerima tamu saat tiba.':'Show this code to the host when you arrive.'};
 var en = d.bahasa === 'en'; const orig = new WeakMap();
 function tr(root) {
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
