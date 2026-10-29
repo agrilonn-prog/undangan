@@ -134,7 +134,7 @@ $('#app').innerHTML = `
       <div class="stiker" id="stikers">${['💐','🤍','🎉','🤲','😍'].map(e => `<button type="button" data-e="${e}">${e}</button>`).join('')}</div>
       <div class="stiker" id="tmpl">${['Selamat menempuh hidup baru! Semoga bahagia selalu dan dilimpahi berkah.','Turut berbahagia untuk kalian berdua. Doa terbaik menyertai.','Maaf belum bisa hadir. Semoga acaranya lancar dan penuh kebahagiaan.'].map((t,i) => `<button type="button" class="chip-t" data-t="${esc(t)}">Contoh ${i+1}</button>`).join('')}</div>
       <textarea name="doa" id="doa" rows="3" placeholder="Ucapan dan doa"></textarea>
-      <button class="btn">${/^\d{8,15}$/.test(d.wa) ? 'Kirim lewat WhatsApp' : 'Kirim ucapan'}</button>
+      <button class="btn">${/^\d{8,15}$/.test(d.wa) ? 'Kirim ucapan via WhatsApp' : 'Kirim ucapan'}</button>
     </form>
     <ul class="ucapan" id="ucapan-list"></ul>
   </section>
@@ -206,22 +206,31 @@ $('#ics').onclick = () => {
 $('#bagi').onclick = () => navigator.share ? navigator.share({title:`Undangan ${d.pria} & ${d.wanita}`, url:location.href}) : navigator.clipboard.writeText(location.href).then(() => ($('#bagi').textContent = 'Tautan tersalin'));
 if ($('#salin')) $('#salin').onclick = e => navigator.clipboard.writeText(d.norek).then(() => (e.target.textContent = 'Tersalin'));
 
-// Ucapan (tersimpan di perangkat ini) + RSVP WhatsApp
+// Ucapan: dikirim lewat WhatsApp (ke mempelai) + tampil di dinding web.
+// Tanpa `sheet`, dinding hanya di perangkat tamu; dengan `sheet` (Google Apps Script), dinding dibagi ke semua tamu.
+const api = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(d.sheet || '') ? d.sheet : '';
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } };
-const show = () => ($('#ucapan-list').hidden = false, $('#ucapan-list').innerHTML = load().map(u => `<li class="glass"><b>${esc(u.n.charAt(0).toUpperCase())}</b><div><small>${esc(u.n)} · ${esc(u.h)}</small>${esc(u.t)}</div></li>`).join(''));
+const kartu = u => `<li class="glass"><b>${esc(String(u.n || '?').charAt(0).toUpperCase())}</b><div><small>${esc(u.n)} · ${esc(u.h)}</small>${esc(u.t)}</div></li>`;
+const tampil = arr => { const ul = $('#ucapan-list'); ul.hidden = !arr.length; ul.innerHTML = arr.map(kartu).join(''); };
+const show = () => tampil(load());
+async function muatBersama() {
+  if (!api) return;
+  try { const r = await fetch(api + '?key=' + encodeURIComponent(KEY)); const a = await r.json(); if (Array.isArray(a) && a.length) tampil(a); } catch (e) {}
+}
 $('#rsvp').onsubmit = e => {
   e.preventDefault();
-  const f = new FormData(e.target), n = f.get('nama'), h = f.get('hadir'), t = ((f.get('stiker') || '') + ' ' + (f.get('doa') || '')).trim(), jm = h === 'Hadir' ? +$('#jml').textContent : 0;
+  const f = new FormData(e.target), n = String(f.get('nama')).trim().slice(0, 60), h = f.get('hadir'), t = ((f.get('stiker') || '') + ' ' + (f.get('doa') || '')).trim().slice(0, 500), jm = h === 'Hadir' ? +$('#jml').textContent : 0;
+  const pesan = `Halo, saya ${n}.\nKonfirmasi: ${h}${jm ? ` (${jm} orang)` : ''}.${d.meja ? ` Meja ${d.meja}.` : ''}${t ? `\n\nUcapan:\n${t}` : ''}`;
+  // WhatsApp dibuka lebih dulu (sinkron) agar tidak diblokir popup
+  if (/^\d{8,15}$/.test(d.wa)) window.open(`https://wa.me/${d.wa}?text=${encodeURIComponent(pesan)}`, '_blank');
   try { localStorage.setItem(KEY, JSON.stringify([{n,h,t}, ...load()].slice(0, 30))); } catch (x) {}
   show(); e.target.reset(); $('#jml').textContent = 1; if (h === 'Hadir') confetti();
-  const pesan = `Halo, saya ${n}. Konfirmasi: ${h}${jm ? ` (${jm} orang)` : ''}.${d.meja ? ` Meja ${d.meja}.` : ''}\n${t}`;
-  if (/^\d{8,15}$/.test(d.wa)) window.open(`https://wa.me/${d.wa}?text=${encodeURIComponent(pesan)}`, '_blank');
+  if (api) fetch(api, {method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify({key: KEY, n, h, t, jm})}).then(() => setTimeout(muatBersama, 1500)).catch(() => {});
 };
-show();
+show(); muatBersama();
 $('#kur').onclick = () => ($('#jml').textContent = Math.max(1, +$('#jml').textContent - 1));
 $('#tam').onclick = () => ($('#jml').textContent = Math.min(10, +$('#jml').textContent + 1));
 $('#rsvp').elements.hadir.onchange = e => ($('#jml-w').style.display = e.target.value === 'Hadir' ? '' : 'none');
-$('#ucapan-list').hidden = !load().length;
 
 // Warna & huruf kustom (warna dibuat terbaca otomatis)
 const HUR = {elegan:"'Cormorant Garamond',serif",klasik:"'Playfair Display',serif",modern:"'Poppins',sans-serif",tegas:"'Cinzel',serif",arab:"'Amiri',serif"};

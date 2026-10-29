@@ -38,3 +38,22 @@ Buka `index.html`, atau unggah semua file ke GitHub Pages / hosting statis apa p
 - Format tiap entri: `tautan` atau `Judul|tautan`, dipisah koma, titik koma, atau baris baru.
 - Multi play: saat satu video/mp3 diputar, yang lain berhenti dan musik latar dijeda, lalu lanjut sendiri setelah selesai. (Pemutar sematan YouTube/SoundCloud/Spotify tidak bisa dijeda otomatis oleh halaman.)
 - Tautan SoundCloud/YouTube di kolom Musik latar otomatis dipindah ke bagian media, karena bukan berkas audio langsung.
+
+## Ucapan: WhatsApp + dinding web
+- Tamu menekan **Kirim ucapan via WhatsApp**: WhatsApp terbuka dengan pesan siap kirim ke nomor mempelai, dan ucapan langsung tampil di dinding web.
+- Tanpa pengaturan tambahan, dinding hanya terlihat di HP tamu itu sendiri (GitHub Pages tidak punya server).
+- **Dinding bersama (semua tamu saling melihat)**, gratis lewat Google Sheets:
+  1. Buat Google Sheet baru > Ekstensi > Apps Script, hapus isinya, tempel kode di bawah.
+  2. Terapkan > Deploy aplikasi web > Jalankan sebagai: Saya, Akses: Siapa saja. Salin URL `.../exec`.
+  3. Tempel URL itu di kolom **Dinding ucapan bersama** pada editor, lalu salin tautan undangan.
+
+```js
+function aman(x){x=String(x);return /^[=+\-@]/.test(x)?"'"+x:x;}
+function doPost(e){var b=JSON.parse(e.postData.contents),ss=SpreadsheetApp.getActiveSpreadsheet(),s=ss.getSheetByName('ucapan')||ss.insertSheet('ucapan');
+  s.appendRow([new Date(),aman(String(b.key).slice(0,200)),aman(String(b.n).slice(0,60)),aman(String(b.h).slice(0,20)),Number(b.jm)||0,aman(String(b.t).slice(0,500))]);
+  return ContentService.createTextOutput('ok');}
+function doGet(e){var s=SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ucapan'),out=[];
+  if(s){var r=s.getDataRange().getValues();for(var i=r.length-1;i>=0&&out.length<50;i--){if(String(r[i][1]).replace(/^'/,'')==e.parameter.key)out.push({n:r[i][2],h:r[i][3],t:r[i][5]});}}
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);}
+```
+- Siapa pun yang punya tautan bisa mengirim ucapan; hapus baris di Sheet jika ada ucapan yang tidak pantas.
