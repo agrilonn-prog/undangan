@@ -62,3 +62,5 @@ function doGet(e){var s=SpreadsheetApp.getActiveSpreadsheet().getSheetByName('uc
 - Jika kolom **Musik latar** kosong dan kolom **Video & suara tambahan** berisi tautan YouTube, YouTube pertama otomatis diputar (berulang) saat tamu menekan **Buka undangan**, tanpa menekan play. Tombol ♫ di pojok kanan atas menjeda/memutar kembali.
 - Jika Musik latar terisi mp3, mp3 itulah yang diputar dan YouTube tetap manual.
 - Browser melarang suara otomatis sebelum ada ketukan, jadi pemutaran dimulai saat tamu menekan Buka undangan (bukan saat halaman baru dimuat).
+
+- **Bisa dimatikan**: kolom editor *Putar musik otomatis saat undangan dibuka* (`autoplay=0` pada tautan) menonaktifkan pemutaran otomatis, baik mp3 maupun YouTube. Tamu juga selalu bisa menjeda lewat tombol ♫.

@@ -36,7 +36,8 @@ function jenis(u, musik) {
 const lagu = [], medItems = [];
 daftar(d.musik).forEach(({j, u}) => { const x = jenis(u, true); if (!x) return; x.j = j; (x.k === 'a' ? lagu : medItems).push(x); });
 daftar(d.media).forEach(({j, u}) => { const x = jenis(u, false); if (x) { x.j = j; medItems.push(x); } });
-const ytAuto = lagu.length ? null : medItems.find(x => x.k === 'e' && x.yt) || null;
+const otomatis = d.autoplay !== '0'; // false = musik tidak diputar otomatis saat undangan dibuka
+const ytAuto = (lagu.length || !otomatis) ? null : medItems.find(x => x.k === 'e' && x.yt) || null;
 const when = new Date(d.tanggal), res = d.resepsi ? new Date(d.resepsi) : new Date(+when + 72e5);
 // Jam acara diketik sebagai waktu setempat (WIB/WITA/WIT); hitung mundur memakai waktu mutlak
 const ZON = {WIB:'+07:00', WITA:'+08:00', WIT:'+09:00'}, zona = ZON[d.zona] ? d.zona : 'WIB';
@@ -200,7 +201,7 @@ document.addEventListener('play', e => {
   if (!e.target.closest || !e.target.closest('.med')) return;
   setTimeout(() => { if (medEls().some(x => !x.paused) || document.hidden) return; if (audio && audio._med) { audio._med = 0; audio.play().catch(() => {}); } if (ytAuto && ytAuto._med) { ytAuto._med = 0; ytCmd('playVideo'); } }, 50);
 }, true));
-$('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); if (audio) { audio._mulai = 1; audio.play().catch(() => {}); } if (ytAuto) { const f = $('#ytbg'); if (f) f.src = ytAuto.src + '&autoplay=1&loop=1&playlist=' + ytAuto.yt; } confetti(); if ($('#cat')) setTimeout(() => ($('#cat').hidden = false), 900); };
+$('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); if (audio) { audio._mulai = otomatis ? 1 : 0; if (otomatis) audio.play().catch(() => {}); } if (ytAuto) { const f = $('#ytbg'); if (f) f.src = ytAuto.src + '&autoplay=1&loop=1&playlist=' + ytAuto.yt; } confetti(); if ($('#cat')) setTimeout(() => ($('#cat').hidden = false), 900); };
 
 // Hitung mundur + status acara
 function tick() {
