@@ -17,7 +17,7 @@ const daftar = s => String(s || '').split(/[,;\n]/).map(x => x.trim()).filter(Bo
 });
 function embed(u) {
   let m;
-  if ((m = u.match(/^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i))) return {src: 'https://www.youtube.com/embed/' + m[1] + '?rel=0&playsinline=1', r: '16/9'};
+  if ((m = u.match(/^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i))) return {src: 'https://www.youtube.com/embed/' + m[1] + '?rel=0&playsinline=1&enablejsapi=1&origin=' + encodeURIComponent(location.origin), r: '16/9', yt: m[1]};
   if (/^https?:\/\/(?:www\.|m\.|on\.)?soundcloud\.com\//i.test(u)) return {src: 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(u) + '&auto_play=false&hide_related=true&show_comments=false&visual=false', h: 166};
   if ((m = u.match(/^https?:\/\/open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|album|playlist|episode|show)\/(\w+)/i))) return {src: `https://open.spotify.com/embed/${m[1]}/${m[2]}`, h: /track|episode/.test(m[1]) ? 152 : 352};
   if ((m = u.match(/^https?:\/\/(?:www\.)?vimeo\.com\/(\d+)/i))) return {src: 'https://player.vimeo.com/video/' + m[1], r: '16/9'};
@@ -36,6 +36,7 @@ function jenis(u, musik) {
 const lagu = [], medItems = [];
 daftar(d.musik).forEach(({j, u}) => { const x = jenis(u, true); if (!x) return; x.j = j; (x.k === 'a' ? lagu : medItems).push(x); });
 daftar(d.media).forEach(({j, u}) => { const x = jenis(u, false); if (x) { x.j = j; medItems.push(x); } });
+const ytAuto = lagu.length ? null : medItems.find(x => x.k === 'e' && x.yt) || null;
 const when = new Date(d.tanggal), res = d.resepsi ? new Date(d.resepsi) : new Date(+when + 72e5);
 // Jam acara diketik sebagai waktu setempat (WIB/WITA/WIT); hitung mundur memakai waktu mutlak
 const ZON = {WIB:'+07:00', WITA:'+08:00', WIT:'+09:00'}, zona = ZON[d.zona] ? d.zona : 'WIB';
@@ -119,7 +120,7 @@ $('#app').innerHTML = `
     const jd = x.j ? `<h4>${esc(x.j)}</h4>` : '';
     if (x.k === 'a') return `<div class="mi">${jd}<audio controls preload="none" src="${esc(x.src)}"></audio></div>`;
     if (x.k === 'v') return `<div class="mi">${jd}<video controls playsinline preload="metadata" src="${esc(x.src)}"></video></div>`;
-    if (x.k === 'e') return `<div class="mi">${jd}<iframe src="${esc(x.src)}" title="${esc(x.j || 'Media ' + (i + 1))}" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" style="${x.r ? 'aspect-ratio:' + x.r : 'height:' + x.h + 'px'}"></iframe></div>`;
+    if (x.k === 'e') return `<div class="mi">${jd}<iframe ${x === ytAuto ? 'id="ytbg" ' : ''}src="${esc(x.src)}" title="${esc(x.j || 'Media ' + (i + 1))}" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" style="${x.r ? 'aspect-ratio:' + x.r : 'height:' + x.h + 'px'}"></iframe></div>`;
     return `<div class="mi">${jd}<a class="btn kecil" href="${esc(x.src)}" target="_blank" rel="noopener">Buka tautan</a></div>`;
   }).join('')}</div></section>` : ''}
   ${foto.length ? `<section class="blok" id="galeri"><h3 class="r">Galeri</h3><div class="gal r">${foto.map(f => `<img src="${esc(f)}" alt="Foto prewedding" loading="lazy">`).join('')}</div></section>` : ''}
@@ -168,22 +169,38 @@ if (lagu.length) {
   muat(0, false); $('#musik').classList.add('ada');
   if (lagu.length > 1) document.querySelectorAll('.mn').forEach(b => b.classList.add('ada'));
 }
-$('#musik').onclick = () => audio && (audio.paused ? audio.play().catch(() => {}) : audio.pause());
+// YouTube sebagai musik latar (bila kolom musik kosong): putar otomatis saat "Buka undangan", dikendalikan tombol ♫
+let ytOn = false;
+const ytCmd = fn => { const f = $('#ytbg'); if (f && f.contentWindow) f.contentWindow.postMessage(JSON.stringify({event: 'command', func: fn, args: ''}), '*'); };
+const ytTanda = on => { ytOn = on; const m = $('#musik'); m.classList.toggle('main', on); m.classList.toggle('jeda', !on); };
+if (ytAuto) {
+  $('#musik').classList.add('ada'); ytTanda(false);
+  const f = $('#ytbg');
+  f.addEventListener('load', () => { const ping = () => f.contentWindow && f.contentWindow.postMessage(JSON.stringify({event: 'listening', id: 1, channel: 'widget'}), '*'); ping(); setTimeout(ping, 800); setTimeout(ping, 2000); });
+  window.addEventListener('message', e => {
+    if (!f.contentWindow || e.source !== f.contentWindow) return;
+    let m; try { m = JSON.parse(e.data); } catch (x) { return; }
+    const st = m.event === 'onStateChange' ? m.info : (m.info && m.info.playerState);
+    if (st === 1 || st === 3) ytTanda(true); else if (st === 2 || st === 0 || st === -1 || st === 5) ytTanda(false);
+  });
+}
+$('#musik').onclick = () => { if (ytAuto) return ytCmd(ytOn ? 'pauseVideo' : 'playVideo'); audio && (audio.paused ? audio.play().catch(() => {}) : audio.pause()); };
 $('#mprev').onclick = () => muat(idx - 1, true);
 $('#mnext').onclick = () => muat(idx + 1, true);
-document.addEventListener('visibilitychange', () => { if (audio && document.hidden && !audio.paused) { audio.pause(); audio._auto = 1; } else if (audio && audio._auto && !document.hidden) { audio._auto = 0; audio.play().catch(() => {}); } });
+document.addEventListener('visibilitychange', () => { if (ytAuto) { if (document.hidden && ytOn) { ytCmd('pauseVideo'); ytAuto._auto = 1; } else if (!document.hidden && ytAuto._auto) { ytAuto._auto = 0; ytCmd('playVideo'); } } if (audio && document.hidden && !audio.paused) { audio.pause(); audio._auto = 1; } else if (audio && audio._auto && !document.hidden) { audio._auto = 0; audio.play().catch(() => {}); } });
 // Multi play: satu pemutar aktif; musik latar berhenti saat video/suara di bagian media diputar, lalu lanjut setelahnya
 const medEls = () => [...document.querySelectorAll('.med audio, .med video')];
 document.addEventListener('play', e => {
   const el = e.target; if (!el.closest || !el.closest('.med')) return;
   medEls().forEach(x => x !== el && !x.paused && x.pause());
   if (audio && !audio.paused) { audio.pause(); audio._med = 1; }
+  if (ytAuto && ytOn) { ytCmd('pauseVideo'); ytAuto._med = 1; }
 }, true);
 ['pause', 'ended'].forEach(v => document.addEventListener(v, e => {
   if (!e.target.closest || !e.target.closest('.med')) return;
-  setTimeout(() => { if (audio && audio._med && !document.hidden && !medEls().some(x => !x.paused)) { audio._med = 0; audio.play().catch(() => {}); } }, 50);
+  setTimeout(() => { if (medEls().some(x => !x.paused) || document.hidden) return; if (audio && audio._med) { audio._med = 0; audio.play().catch(() => {}); } if (ytAuto && ytAuto._med) { ytAuto._med = 0; ytCmd('playVideo'); } }, 50);
 }, true));
-$('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); if (audio) { audio._mulai = 1; audio.play().catch(() => {}); } confetti(); if ($('#cat')) setTimeout(() => ($('#cat').hidden = false), 900); };
+$('#buka').onclick = () => { $('#cover').classList.add('tutup'); document.body.classList.add('terbuka'); if (audio) { audio._mulai = 1; audio.play().catch(() => {}); } if (ytAuto) { const f = $('#ytbg'); if (f) f.src = ytAuto.src + '&autoplay=1&loop=1&playlist=' + ytAuto.yt; } confetti(); if ($('#cat')) setTimeout(() => ($('#cat').hidden = false), 900); };
 
 // Hitung mundur + status acara
 function tick() {
